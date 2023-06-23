@@ -1,0 +1,22 @@
+{
+  "name": "vite-plugin-easy-css",
+  "version": "0.0.2",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup"
+  },
+  "dependencies": {
+    "@babel/core": "^7.20.12",
+    "babel-preset-easy-css": "workspace:*"
+  },
+  "author": "IanDx",
+  "devDependencies": {
+    "tsup": "^6.5.0"
+  }
+}
