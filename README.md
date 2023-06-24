@@ -53,7 +53,7 @@ document.body.innerHTML = `
 Result in head:
 ```html
 <style data-tag="🎨easy-css">
-    .my-style{color: red;font-size: 16px;}
+    .my-style{color:red;font-size:16px;}
 </style>
 ```
 ## Named css as object
@@ -113,7 +113,7 @@ class MyClass {
 Result in head:
 ```html
 <style data-tag="🎨easy-css">
-    .my-class-style{width: 100px;}
+    .my-class-style{width:100px;}
 </style>
 ```
 
@@ -150,10 +150,10 @@ const myStyle$ = css`
   font-size: 16px;
 `;
 
-console.log(myStyle); // ~> "my-style-b1i9aj"
+console.log(myStyle$); // ~> "my-style-b1i9aj"
 
 document.body.innerHTML = `
-  <div class="${myStyle}">Hello, world!</div>
+  <div class="${myStyle$}">Hello, world!</div>
 `
 ```
 Result in head:
@@ -220,6 +220,21 @@ Result in head:
     .my-named-style{margin: auto;padding: 20px;}
 </style>
 ```
+## Underline trimming
+To avoid variable declaration conflict, you can add underline as prefix or appendix, and easy-css will auto trim for you
+```ts
+import css from "@iandx/easy-css"
+
+const myStyle = css`
+  padding: 20px;
+  margin: auto;
+`) // ~> "my-style"
+
+const myStyle_ = (color) => css`
+  padding: ${color};
+`) // ~> `my-style-${color}`
+```
+
 ## No document object
 If you're using it in SSR or any environment other than the browser, you can get a the whole style string map with:
 ```ts

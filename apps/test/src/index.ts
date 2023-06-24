@@ -1,7 +1,7 @@
 
 import css, { geneEasyStyle } from "@iandx/easy-css"
 
-const fuck = (ok) => css`
+const fuck____ = (ok) => css`
    color: ${ok};
 `
 let jj = {
@@ -9,9 +9,16 @@ let jj = {
   color: ${fine}${shit};
 `
 }
-jj.ok("blue", "b")
-fuck("red", "blue")
+console.log(jj.ok("blue", "b"))
+fuck____("red", "blue")
 console.log(geneEasyStyle())
+class JJ {
+  hh = css`hh`
+  constructor() {
+    console.log(this.hh)
+  }
+}
+new JJ()
 // console.time("0")
 // for (let i = 0; i < 1000; i++) {
 //   css`

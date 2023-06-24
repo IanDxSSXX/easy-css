@@ -1,7 +1,11 @@
 import * as t from "@babel/types"
 
+function trimUnderline(str: string) {
+  return str.replace(/^_+|_+$/g, "")
+}
+
 function toHyphenatedCase(str: string) {
-  return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()
+  return trimUnderline(str).replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()
 }
 
 export default function() {
@@ -44,6 +48,21 @@ export default function() {
         if (t.isVariableDeclarator(parentNode)) {
           if (!t.isIdentifier(parentNode.id)) return
           const name = toHyphenatedCase(parentNode.id.name)
+          path.replaceWith(
+            t.callExpression(
+              t.memberExpression(
+                t.identifier("css"),
+                t.identifier("collect")
+              ),
+              [node, getEasyName(name)]
+            )
+          )
+          path.skip()
+          return
+        }
+        if (t.isClassProperty(parentNode)) {
+          if (!t.isIdentifier(parentNode.key)) return
+          const name = toHyphenatedCase(parentNode.key.name)
           path.replaceWith(
             t.callExpression(
               t.memberExpression(
