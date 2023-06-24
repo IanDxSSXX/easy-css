@@ -112,10 +112,29 @@ Result in head:
     .my-class-style{width: 100px;}
 </style>
 ```
+## Named Arbitrary css
+Your can declare a named css classname with random string in the end with any variable that ends with a "$"
+
+```ts
+import css from "@iandx/easy-css"
+
+const myStyle$ = css`
+  color: red;
+  font-size: 16px;
+`;
+
+console.log(myStyle); // ~> "my-style-b1i9aj"
+
+document.body.innerHTML = `
+  <div class="${myStyle}">Hello, world!</div>
+`
+```
 
 ## Arbitrary css
 If you call easy-css in a situation other than the three mentioned above, the class name will be a random string(because you do not provide a name that can be used as a className). 
 ```ts
+import css from "@iandx/easy-css"
+
 console.log(css`
   cursor: pointer;
 `) // ~> "easy-css-aje31h"
@@ -128,6 +147,8 @@ Result in head:
 ```
 But don't you worry that if it is called multiple times with the same CSS code, it will generate redundant CSS. Easy-css will automatically cache the same css code(no matter the order) and reuse the style.
 ```ts
+import css from "@iandx/easy-css"
+
 console.log(css`
   cursor: pointer;
   display: flex;
@@ -147,6 +168,8 @@ Result in head:
 ```
 Additionally, if your arbitrary css has the same style with a existing named css, easy-css will automatically make your arbitrary css's name become specific.
 ```ts
+import css from "@iandx/easy-css"
+
 const myNamedStyle = css`
   padding: 20px;
   margin: auto;

@@ -24,10 +24,14 @@ function injectStyle(styles: string[]) {
   if (!head) head = document.head || document.getElementsByTagName("head")[0]
   if (!styleEl) {
     styleEl = document.createElement("style")
-    styleEl.id = "🎨easy-css"
+    let id = 0
+    while (document.getElementById(`🎨easy-css${id === 0 ? "" : `-${id}`}`)) {
+      id++
+    }
+    styleEl.id = `🎨easy-css${id === 0 ? "" : `-${id}`}`
     head.appendChild(styleEl)
     // make sure the same package using easy-css has the same seed and different packages have different
-    rand.seed += head.children.length
+    rand.seed += id
   }
   styleEl.replaceChildren(...styles.map(style => document.createTextNode(style)))
 }
@@ -48,6 +52,7 @@ css.collect = (cssString: string, name?: string) => {
   // serve as pseudo hash value
   cssString = cssArr.join(";") + (cssArr.length !== 0 ? ";" : "")
   if (!name) name = hashHolder[cssString] ?? `easy-css-${rand.randStr()}`
+  else if (name.endsWith("$")) name = hashHolder[cssString] ?? `${name.slice(0, -1)}-${rand.randStr()}`
   hashHolder[cssString] = name
   namedHolder[name] = cssString
   injectStyle(Object.entries(namedHolder).map(([key, value]) => `.${key}{${value}}`))

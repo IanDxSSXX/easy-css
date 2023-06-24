@@ -22,9 +22,5 @@
   },
   "ts-node": {
     "esm": true
-  },
-  "include": [
-    "apps/**/*",
-    "packages/**/*"
-  ]
+  }
 }
