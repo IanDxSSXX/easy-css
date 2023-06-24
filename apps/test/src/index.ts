@@ -1,14 +1,23 @@
 
-import css from "@iandx/easy-css"
+import css, { geneEasyStyle } from "@iandx/easy-css"
 
-for (let i = 0; i < 10000; i++) {
-  i++
+const fuck = (ok) => css`
+   color: ${ok};
+`
+let jj = {
+  ok: (fine, shit) => css`
+  color: ${fine}${shit};
+`
 }
-console.time("0")
-for (let i = 0; i < 1000; i++) {
-  css`
-        color: red${i};
-        background-color: blue;
-    `
-}
-console.timeEnd("0")
+jj.ok("blue", "b")
+fuck("red", "blue")
+console.log(geneEasyStyle())
+// console.time("0")
+// for (let i = 0; i < 1000; i++) {
+//   css`
+//         color: red${i};
+//         background-color: blue;
+//     `
+// }
+// console.timeEnd("0")
+

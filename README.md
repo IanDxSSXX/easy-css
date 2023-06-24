@@ -116,7 +116,30 @@ Result in head:
     .my-class-style{width: 100px;}
 </style>
 ```
-## Named Arbitrary css
+
+## Named css with parameters
+Works only with an arrow function
+```ts
+import css from "@iandx/easy-css"
+
+const myStyle = (myParam1, param2) => css`
+  color: ${myParam1};
+  font-size: ${param2}px;
+`;
+
+console.log(myStyle("red", "16")); // ~> "my-style-red-16"
+
+document.body.innerHTML = `
+  <div class="${myStyle}">Hello, world!</div>
+`
+```
+Result in head:
+```html
+<style data-tag="🎨easy-css">
+    .my-style-red-16{color:red;font-size:16px;}
+</style>
+```
+## Named arbitrary css
 Your can declare a named css classname with random string in the end with any variable that ends with a "$"
 
 ```ts
@@ -133,9 +156,15 @@ document.body.innerHTML = `
   <div class="${myStyle}">Hello, world!</div>
 `
 ```
+Result in head:
+```html
+<style data-tag="🎨easy-css">
+    .my-style-b1i9aj{color:red;font-size:16px;}
+</style>
+```
 
 ## Arbitrary css
-If you call easy-css in a situation other than the three mentioned above, the class name will be a random string(because you do not provide a name that can be used as a className). 
+If you call easy-css in a situation other than those mentioned above, the class name will be a random string(because you do not provide any name that can be used as a className). 
 ```ts
 import css from "@iandx/easy-css"
 
@@ -190,4 +219,19 @@ Result in head:
 <style data-tag="🎨easy-css">
     .my-named-style{margin: auto;padding: 20px;}
 </style>
+```
+## No document object
+If you're using it in SSR or any environment other than the browser, you can get a the whole style string map with:
+```ts
+import { easyStore } from "@iandx/easy-css"
+
+console.log(easyStore)
+// ~> { "my-style": "color: red;", ...}
+```
+or get a generated style html string with:
+```ts
+import { geneEasyStyle } from "@iandx/easy-css"
+
+console.log(geneEasyStyle())
+// ~> <style data-tag="🎨easy-css">.my-style{color:red;}</style>
 ```

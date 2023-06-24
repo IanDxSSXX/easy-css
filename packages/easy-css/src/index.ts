@@ -16,7 +16,11 @@ let head: any
 
 const hashHolder: Record<string, string> = {}
 
-const nameHolder: Record<string, string> = {}
+export const easyStore: Record<string, string> = {}
+
+export function geneEasyStyle() {
+  return `<style data-tag="🎨easy-css">${Object.entries(easyStore).map(([name, cssString]) => `.${name}{${cssString}}`).join("")}</style>`
+}
 
 function injectStyle(style: string) {
   if (typeof document === "undefined") return
@@ -46,9 +50,9 @@ css.collect = (cssString: string, name?: string) => {
   if (hashHolder[cssString]) return hashHolder[cssString]
   if (!name) name = hashHolder[cssString] ?? `easy-css-${rand.randStr()}`
   else if (name.endsWith("$")) name = hashHolder[cssString] ?? `${name.slice(0, -1)}-${rand.randStr()}`
-  else if (Object.keys(nameHolder).includes(name)) {
+  else if (Object.keys(easyStore).includes(name)) {
     // resolve named variable conflict
-    const names = Object.keys(nameHolder).filter(n => n.startsWith(name!))
+    const names = Object.keys(easyStore).filter(n => n.startsWith(name!))
     let id = 0
     while (names.includes(`${name}${id === 0 ? "" : `-${id}`}`)) {
       id++
@@ -56,7 +60,7 @@ css.collect = (cssString: string, name?: string) => {
     name = `${name}${id === 0 ? "" : `-${id}`}`
   }
   hashHolder[cssString] = name
-  nameHolder[name] = cssString
+  easyStore[name] = cssString
   injectStyle(`.${name}{${cssString}}`)
   return name
 }
