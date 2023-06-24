@@ -44,8 +44,9 @@ export default function() {
           return
         }
         if (t.isObjectProperty(parentNode)) {
-          if ((!t.isIdentifier(parentNode.key) && !t.isStringLiteral(parentNode.key)) || !t.isTaggedTemplateExpression(parentNode.value)) return
-          const name = toHyphenatedCase(t.isIdentifier(parentNode.key) ? parentNode.key.name : parentNode.key.value)
+          if (!t.isTaggedTemplateExpression(parentNode.value) ||
+            t.isPrivateName(parentNode.key)
+          ) return
           parentPath.replaceWith(
             t.objectProperty(
               parentNode.key,
@@ -56,9 +57,16 @@ export default function() {
                 ),
                 [
                   parentNode.value,
-                  t.stringLiteral(name)
+                  parentNode.computed
+                    ? parentNode.key
+                    : t.stringLiteral(toHyphenatedCase(
+                      t.isIdentifier(parentNode.key)
+                        ? parentNode.key.name
+                        : (parentNode.key as any).value
+                    ))
                 ]
-              )
+              ),
+              parentNode.computed
             )
           )
           parentPath.skip()

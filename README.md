@@ -52,7 +52,7 @@ document.body.innerHTML = `
 ```
 Result in head:
 ```html
-<style id="🎨easy-css">
+<style data-tag="🎨easy-css">
     .my-style{color: red;font-size: 16px;}
 </style>
 ```
@@ -82,9 +82,13 @@ document.body.innerHTML = `
 ```
 Result in head:
 ```html
-<style id="🎨easy-css">
+<style data-tag="🎨easy-css">
     .yellow{background-color:yellow;}
+</style>
+<style data-tag="🎨easy-css">
     .red{background-color:red;}
+</style>
+<style data-tag="🎨easy-css">
     .blue{background-color:blue;}
 </style>
 ```
@@ -108,7 +112,7 @@ class MyClass {
 ```
 Result in head:
 ```html
-<style id="🎨easy-css">
+<style data-tag="🎨easy-css">
     .my-class-style{width: 100px;}
 </style>
 ```
@@ -141,7 +145,7 @@ console.log(css`
 ```
 Result in head:
 ```html
-<style id="🎨easy-css">
+<style data-tag="🎨easy-css">
     .easy-css-aje31h{cursor: pointer;}
 </style>
 ```
@@ -162,7 +166,7 @@ console.log(css`
 ```
 Result in head:
 ```html
-<style id="🎨easy-css">
+<style data-tag="🎨easy-css">
     .easy-css-48a2og{display: flex;cursor: pointer;}
 </style>
 ```
@@ -183,7 +187,7 @@ console.log(css`
 ```
 Result in head:
 ```html
-<style id="🎨easy-css">
+<style data-tag="🎨easy-css">
     .my-named-style{margin: auto;padding: 20px;}
 </style>
 ```

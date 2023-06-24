@@ -13,27 +13,19 @@ const rand = {
 }
 
 let head: any
-let styleEl: HTMLStyleElement
 
 const hashHolder: Record<string, string> = {}
 
-const namedHolder: Record<string, string> = {}
+const nameHolder: Record<string, string> = {}
 
-function injectStyle(styles: string[]) {
+function injectStyle(style: string) {
   if (typeof document === "undefined") return
   if (!head) head = document.head || document.getElementsByTagName("head")[0]
-  if (!styleEl) {
-    styleEl = document.createElement("style")
-    let id = 0
-    while (document.getElementById(`🎨easy-css${id === 0 ? "" : `-${id}`}`)) {
-      id++
-    }
-    styleEl.id = `🎨easy-css${id === 0 ? "" : `-${id}`}`
-    head.appendChild(styleEl)
-    // make sure the same package using easy-css has the same seed and different packages have different
-    rand.seed += id
-  }
-  styleEl.replaceChildren(...styles.map(style => document.createTextNode(style)))
+  if (!head) return
+  const styleEl = document.createElement("style")
+  styleEl.innerHTML = style
+  styleEl.dataset.tag = "🎨easy-css"
+  document.head.appendChild(styleEl)
 }
 
 function css(strings: TemplateStringsArray, ...values: any[]) {
@@ -51,11 +43,21 @@ css.collect = (cssString: string, name?: string) => {
   const cssArr = [...new Set(cssString.split(";"))].filter(Boolean).sort()
   // serve as pseudo hash value
   cssString = cssArr.join(";") + (cssArr.length !== 0 ? ";" : "")
+  if (hashHolder[cssString]) return hashHolder[cssString]
   if (!name) name = hashHolder[cssString] ?? `easy-css-${rand.randStr()}`
   else if (name.endsWith("$")) name = hashHolder[cssString] ?? `${name.slice(0, -1)}-${rand.randStr()}`
+  else if (Object.keys(nameHolder).includes(name)) {
+    // resolve named variable conflict
+    const names = Object.keys(nameHolder).filter(n => n.startsWith(name!))
+    let id = 0
+    while (names.includes(`${name}${id === 0 ? "" : `-${id}`}`)) {
+      id++
+    }
+    name = `${name}${id === 0 ? "" : `-${id}`}`
+  }
   hashHolder[cssString] = name
-  namedHolder[name] = cssString
-  injectStyle(Object.entries(namedHolder).map(([key, value]) => `.${key}{${value}}`))
+  nameHolder[name] = cssString
+  injectStyle(`.${name}{${cssString}}`)
   return name
 }
 
