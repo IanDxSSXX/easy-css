@@ -5,7 +5,12 @@ function trimUnderline(str: string) {
 }
 
 function toHyphenatedCase(str: string) {
-  return trimUnderline(str).replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()
+  return trimUnderline(str)
+    .replace(/([a-z])([A-Z])/g, "$1-$2")
+    .replace(/[^a-zA-Z0-9]/g, "-")
+    .replace(/-$/, "")
+    .replace(/--+/, "-")
+    .toLowerCase()
 }
 
 export default function() {
@@ -54,7 +59,7 @@ export default function() {
                 t.identifier("css"),
                 t.identifier("collect")
               ),
-              [node, getEasyName(name)]
+              [node.quasi, getEasyName(name)]
             )
           )
           path.skip()
@@ -69,7 +74,7 @@ export default function() {
                 t.identifier("css"),
                 t.identifier("collect")
               ),
-              [node, getEasyName(name)]
+              [node.quasi, getEasyName(name)]
             )
           )
           path.skip()
@@ -90,7 +95,7 @@ export default function() {
                 t.identifier("collect")
               ),
               [
-                node,
+                node.quasi,
                 parentNode.computed
                   ? parentNode.key
                   : getEasyName(name)
@@ -105,10 +110,7 @@ export default function() {
             t.memberExpression(
               t.identifier("css"),
               t.identifier("collect")
-            ),
-            [
-              node
-            ]
+            ), [node.quasi]
           )
         )
         path.skip()

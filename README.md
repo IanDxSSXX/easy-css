@@ -5,7 +5,11 @@
 [![vite-plugin-easy-css](https://badgen.net/npm/v/vite-plugin-easy-css?label=vite-plugin-easy-css)](https://www.npmjs.com/package/https://badgen.net/npm/v/vite-plugin-easy-css?label=vite-plugin-easy-css)
 
 
-🪽 The easiest way to write css in js.
+🎨 The easiest way to write css in js.
+
+Easy css is best for
+1. developers writing component libraries or abstract components
+2. developers building quick and simple websites with easy-css-atomic and easy-css-utility
 
 Other css in js tools are just great, but what if I just want to add a simple style to the html head? With easy-css, you can write simple css styles using template literals and have them automatically generate class names `based on the variable name`. This makes it easy to add styles to your HTML without having to worry about `naming conflicts` or `generating random class names`. Plus, easy-css is lightweight and has no dependencies, making it a great choice for projects of all sizes.
 
@@ -235,15 +239,156 @@ const myStyle_ = (color) => css`
 `) // ~> `my-style-${color}`
 ```
 
-## No document object
-If you're using it in SSR or any environment other than the browser, you can get a the whole style string map with:
-```ts
-import { easyStore } from "@iandx/easy-css"
 
-console.log(easyStore)
-// ~> { "my-style": "color: red;", ...}
+# Advanced
+## Nested Selectors
+```ts
+import css from "@iandx/easy-css"
+
+const myStyle = css`
+  color: red;
+  font-size: 16px;
+  a {
+    cursor: pointer;
+  }
+`;
 ```
-or get a generated style html string with:
+Result in head:
+```html
+<style data-tag="🎨easy-css">
+    .my-style{color:red;font-size:16px;}
+    .my-style a{cursor:pointer;}
+</style>
+```
+And
+```ts
+import css from "@iandx/easy-css"
+
+const myStyle = css`
+  color: red;
+  font-size: 16px;
+  .sub-style {
+    cursor: pointer;
+  }
+`;
+```
+Result in head:
+```html
+<style data-tag="🎨easy-css">
+    .my-style{color:red;font-size:16px;}
+    .my-style .sub-style{cursor:pointer;}
+</style>
+```
+And you can use `&` as a parent selector
+```ts
+import css from "@iandx/easy-css"
+
+const myStyle = css`
+  color: red;
+  font-size: 16px;
+  div & {
+    cursor: pointer;
+  }
+`;
+```
+Result in head:
+```html
+<style data-tag="🎨easy-css">
+    .my-style{color:red;font-size:16px;}
+    div .my-style{cursor:pointer;}
+</style>
+```
+And
+```ts
+import css from "@iandx/easy-css"
+
+const myStyle = css`
+  color: red;
+  font-size: 16px;
+  :hover {
+    color: red;
+  }
+`;
+```
+Result in head:
+```html
+<style data-tag="🎨easy-css">
+    .my-style{color:red;font-size:16px;}
+    .my-style :hover{color:red;}
+</style>
+```
+## Media Queries
+```ts
+import css from "@iandx/easy-css"
+
+const myStyle = css`
+  font-size: 30px;
+  @media (min-width: 420px) {
+    font-size: 50px;
+  }
+`;
+```
+Result in head:
+```html
+<style data-tag="🎨easy-css">
+    .my-style{font-size: 30px;}
+    @media(min-width:420px){.my-style{font-size: 50px;}}
+</style>
+```
+
+# Atomic and Utility css classes
+Atomic CSS and utility-first frameworks are rapidly rising in popularity as a simple yet powerful approach to styling components.
+
+Atomic CSS involves defining styles for short "atom" classes that target a single style declaration, such as .text-red-500 for red text or .truncate for truncating text. You compose elements by stacking these classes , allowing extremely modular and reusable styles.
+
+Atomic CSS offers many benefits over traditional CSS:
+
+• Scalability: Easily build complex designs through composition of atomic styles.
+• Simple: Class names map directly to CSS declarations for an intuitive API.
+• Flexibility: Only include the exact styles your project needs.
+
+Many developers are now adopting atomic-first frameworks that implement this concept at scale like tailwindcss.
+
+Here, we represent a css in js atomic css solution. You can write plain styles like this:
+```ts
+import { margin, display } from "@iandx/easy-css-atomic"
+const el = document.getElementById("app")
+el.className = [color("rgb(254 202 202)"), display("flex")].join(" ")
+```
+Result in head:
+```html
+<style data-tag="🎨easy-css">
+    .color-rgb-254-202-202{color: rgb(254 202 202);}
+    .display-flex{display: flex;}
+</style>
+```
+Or even better in an ui rendering library or a framework like React:
+```jsx
+import { color, display } from "@iandx/easy-css-atomic"
+
+const MyComp = () => (
+  <div className={[color("rgb(254 202 202)"), display("flex")]}>
+    🎨 Easy css
+  </div>
+)
+
+```
+Or better with `@iandx/easy-css-utility`
+```jsx
+import { textRed200, flex } from "@iandx/easy-css-utility"
+
+const MyComp = () => (
+  <div className={[textRed200(), display()]}>
+    🎨 Easy css
+  </div>
+)
+
+```
+See all available utilities in [utility types](./packages/easy-css-utility/src/utility.type.ts)
+
+And don't worry about the runtime speed and the library size because it's fast and we've got tree shaking!
+# No document object
+If you're using it in SSR or any environment other than the browser, you can get a generated style html string with:
 ```ts
 import { geneEasyStyle } from "@iandx/easy-css"
 
