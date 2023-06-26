@@ -9,14 +9,21 @@ import syntaxDecorators from "@babel/plugin-syntax-decorators"
 // @ts-ignore
 import easyCss from "babel-plugin-easy-css"
 
-export default function() {
+interface EasyCssOption {
+  utilities?: Array<{
+    easyFuncMap: Record<string, ((...args: any) => string)>
+    safeName?: string
+  }>
+}
+
+export default function(api: any, options: EasyCssOption) {
   return {
     plugins: [
       [syntaxTypescript.default ?? syntaxTypescript, { isTSX: true }],
       syntaxDoExpressions.default ?? syntaxDoExpressions,
       syntaxJsx.default ?? syntaxJsx,
       [syntaxDecorators.default ?? syntaxDecorators, { legacy: true }],
-      easyCss
+      [easyCss, options]
     ]
   }
 }

@@ -19,6 +19,7 @@
     "@emotion/css": "^11.11.2",
     "@iandx/easy-css": "workspace:*",
     "@iandx/easy-css-atomic": "workspace:*",
+    "@iandx/easy-css-utility": "workspace:*",
     "less": "^4.1.3",
     "ts-node": "^10.9.1"
   }

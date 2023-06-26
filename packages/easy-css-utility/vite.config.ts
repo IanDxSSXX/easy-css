@@ -9,7 +9,7 @@ export default defineConfig({
     port: 26660
   },
   sourceMap: true,
-  plugins: [easyCss(), dts()],
+  plugins: [easyCss({ entryFile: "src/index.ts" }), dts()],
   build: {
     lib: {
       entry: resolve(__dirname, "./src/index.ts"),

@@ -8,18 +8,18 @@ function toHyphenatedCase(str) {
   return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()
 }
 
-const readyToChangeStr = `
+// const readyToChangeStr = `
 
-`
+// `
 
-const arr = readyToChangeStr.split("@@").filter(Boolean).map(i => {
-  let [name, content] = i.split("\t")
-  name = toCamelCase(name)
-  return [name.trim(), content.trim().replace(/\n/g, "")]
-})
-for (const [name, content] of arr) {
-  console.log(`  ${name}: () => css\`${content}\`,`)
-}
+// const arr = readyToChangeStr.split("@@").filter(Boolean).map(i => {
+//   let [name, content] = i.split("\t")
+//   name = toCamelCase(name)
+//   return [name.trim(), content.trim().replace(/\n/g, "")]
+// })
+// for (const [name, content] of arr) {
+//   console.log(`  ${name}: () => css\`${content}\`,`)
+// }
 
 // ---------------
 const utility = {
@@ -1148,22 +1148,34 @@ const utility = {
   notSrOnly: () => "position: static;width: auto;height: auto;padding: 0;margin: 0;overflow: visible;clip: auto;white-space: normal;"
 }
 
-let a = "// eslint-disable-next-line @typescript-eslint/consistent-type-definitions\nexport type Utility = {\n"
+// let a = "// eslint-disable-next-line @typescript-eslint/consistent-type-definitions\nexport type Utility = {\n"
+// for (const key in utility) {
+//   a += ("" +
+//   "  /**\n" +
+//   "   * ```\n" +
+//   `   * .${toHyphenatedCase(key)} {\n` +
+//   utility[key]().split(";").filter(Boolean).map(i => `   *   ${i};\n`).join("") +
+//   "   * }\n" +
+//   "   * ```\n" +
+//   "   */\n" +
+//   `  ${key}: () => string\n`
+//   )
+// }
+// a += "}\n"
+// fs.writeFileSync("./src/utility.type.ts", a)
+
+let a = "import { css } from \"@iandx/easy-css\"\ntype Utility = () => string\n"
 for (const key in utility) {
   a += ("" +
-  "  /**\n" +
-  "   * ```\n" +
-  `   * .${toHyphenatedCase(key)} {\n` +
-  utility[key]().split(";").filter(Boolean).map(i => `   *   ${i};\n`).join("") +
-  "   * }\n" +
-  "   * ```\n" +
-  "   */\n" +
-  `  ${key}: () => string\n`
+  "/**\n" +
+  " * ```css\n" +
+  ` * .${toHyphenatedCase(key)} {\n` +
+  utility[key]().split(";").filter(Boolean).map(i => ` *   ${i};\n`).join("") +
+  " * }\n" +
+  " * ```\n" +
+  " */\n"
   )
+  a += `export const ${key}: Utility = () => css\`${utility[key]()}\`\n`
 }
-a += "}\n"
-fs.writeFileSync("./src/utility.type.ts", a)
-
-for (const key in utility) {
-  console.log(`export const ${key} = utility.${key}`)
-}
+console.log(a)
+fs.writeFileSync("./src/utility.ts", a)

@@ -1,66 +1,124 @@
-interface EasyStyle {
-  cssStr: string
-  subs: EasyStyleWithSub[]
-}
-
-interface EasyStyleWithSub {
-  styleStr: ((mainName: string) => string) | string
-  subs: EasyStyleWithSub[]
-}
-
-const rand = {
-  a: 1103515245,
-  c: 12345,
-  m: Math.pow(2, 32),
-  seed: 123456789,
-  rand() {
-    rand.seed = (rand.a * rand.seed + rand.c) % rand.m
-    return rand.seed / rand.m
-  },
-  randStr() {
-    return rand.rand().toString(32).slice(2, 8)
-  }
-}
+import { parseSub } from "./subParser"
+import { type EasyStyleWithSub, type EasyStyle, type EasyStore } from "./types"
+import { rand, generateUUIDFromString } from "./utils"
 
 let head: any
 
-const hashHolder: Record<string, string> = {}
-
-const easyStore: Record<string, string> = {}
-const allStyles: string[] = []
-const conflictNameStore: Record<string, number> = {}
-
-export function geneEasyStyle() {
-  return `<style data-tag="🎨easy-css">${allStyles.join("")}</style>`
+export const easyStore: EasyStore = {
+  styleList: [],
+  conflictNameStore: {},
+  nameHashStore: {},
+  styleHashStore: {}
 }
 
-function injectStyle(style: string, key?: string) {
+export const state = {
+  dev: false
+}
+
+export function clearStore() {
+  easyStore.nameHashStore = {}
+  easyStore.styleHashStore = {}
+  easyStore.conflictNameStore = {}
+  easyStore.styleList = []
+}
+
+export function inheritEasyStore(newEasyStore: EasyStore) {
+  easyStore.styleList = [...easyStore.styleList, ...newEasyStore.styleList]
+  easyStore.conflictNameStore = { ...easyStore.conflictNameStore, ...newEasyStore.conflictNameStore }
+  easyStore.nameHashStore = { ...easyStore.nameHashStore, ...newEasyStore.nameHashStore }
+  easyStore.styleHashStore = { ...easyStore.styleHashStore, ...newEasyStore.styleHashStore }
+}
+
+export function abandonEasyStore(oldEasyStore: EasyStore) {
+  easyStore.styleList = easyStore.styleList.filter(s => !oldEasyStore.styleList.includes(s))
+  easyStore.conflictNameStore = Object.fromEntries(
+    Object.entries(easyStore.conflictNameStore).filter(([key]) => (
+      !Object.keys(oldEasyStore.conflictNameStore).includes(key))
+    )
+  )
+  easyStore.nameHashStore = Object.fromEntries(
+    Object.entries(easyStore.nameHashStore).filter(([key]) => (
+      !Object.keys(oldEasyStore.nameHashStore).includes(key))
+    )
+  )
+  easyStore.styleHashStore = Object.fromEntries(
+    Object.entries(easyStore.styleHashStore).filter(([key]) => (
+      !Object.keys(oldEasyStore.styleHashStore).includes(key))
+    )
+  )
+}
+
+export function diffEasyStore(oldEasyStore: EasyStore): EasyStore {
+  return {
+    styleList: easyStore.styleList.filter(s => !oldEasyStore.styleList.includes(s)),
+    conflictNameStore: Object.fromEntries(
+      Object.entries(easyStore.conflictNameStore).filter(([key]) => (
+        oldEasyStore.conflictNameStore[key] === undefined
+      ))
+    ),
+    nameHashStore: Object.fromEntries(
+      Object.entries(easyStore.nameHashStore).filter(([key]) => (
+        oldEasyStore.nameHashStore[key] === undefined
+      ))
+    ),
+    styleHashStore: Object.fromEntries(
+      Object.entries(easyStore.styleHashStore).filter(([key]) => (
+        oldEasyStore.styleHashStore[key] === undefined
+      ))
+    )
+  }
+}
+
+export function geneEasyStyle() {
+  return `<style data-tag="🎨easy-css">${easyStore.styleList.join("")}</style>`
+}
+
+function injectStyle(style: string, key: string, filePath?: string) {
+  easyStore.styleList.push(style)
+  injectStyleToDOM(style, key, filePath)
+}
+
+export function injectListStyle() {
+  if (easyStore.styleList.length > 0) injectStyleToDOM(easyStore.styleList.join(""), "✨pre-parsed")
+}
+
+function injectStyleToDOM(style: string, key: string, filePath?: string) {
   if (typeof document === "undefined") return
   if (!head) head = document.head || document.getElementsByTagName("head")[0]
   if (!head) return
   const styleEl = document.createElement("style")
   styleEl.innerHTML = style
   styleEl.dataset.tag = "🎨easy-css"
-  if (key) styleEl.dataset.key = key
+  styleEl.dataset.key = key
+  if (filePath) styleEl.dataset.path = filePath
   document.head.appendChild(styleEl)
-  allStyles.push(style)
 }
 
 function minify(str: string) {
   return str.replace(/\n/g, "").replace(/\/\*(\n|.)+?\*\//g, "").replace(/\s*([:;,{}])\s*/g, "$1").trim()
 }
 
-function css(strings: TemplateStringsArray, ...values: any[]) {
+export function css(strings: TemplateStringsArray, ...values: any[]) {
   return strings.reduce((result, string, i) => {
     return result + string + (values[i] || "")
   }, "")
 }
 
-css.collect = (cssString: string, name?: string, sub?: boolean, injectContent?: (content: string) => string, disableSub?: boolean) => {
+function getFilePath() {
+  const stackTrace = new Error().stack
+  const callerLine = stackTrace?.split("\n")[3]
+  const callerPathAndLine = callerLine?.trim().match(/\(?([^)]+)\)?/)?.[1]
+  const filePath = callerPathAndLine?.split(" ")[1]?.replace(/^https?:\/\//, "").split("/").slice(1).join("/").split("?")[0]
+
+  return filePath
+}
+
+css.collect = (cssString: string, name?: string) => {
+  const filePath = state.dev ? getFilePath() : undefined
   const easyStyle = parseToEasyStyle(cssString)
   const same = judge(name, easyStyle)
-  const mainName = handleMainStyle(easyStyle.cssStr, name, same)
-  handleSubStyles(mainName, easyStyle.subs)
+  const mainName = handleMainStyle(easyStyle.cssStr, name, same, filePath)
+  handleSubStyles(mainName, easyStyle.subs, filePath)
 
   return mainName
 }
@@ -123,7 +181,7 @@ function parseToEasyStyle(cssString: string): EasyStyle {
 
 function judge(name: string | undefined, easyStyle: EasyStyle) {
   if (!name) return false
-  const mainTheSame = !!easyStore[name]
+  const mainTheSame = easyStore.conflictNameStore[name] !== undefined
   const subsTheSame = judgeSubs(easyStyle.subs)
   return mainTheSame && subsTheSame
 }
@@ -132,71 +190,37 @@ function judgeSubs(easyStylesWithSub: EasyStyleWithSub[]) {
   for (const { styleStr, subs } of easyStylesWithSub) {
     const mustBeUnique = typeof styleStr !== "string"
     if (mustBeUnique) return false
-    const alreadyHaveThisStyle = allStyles.includes(styleStr)
+    const alreadyHaveThisStyle = easyStore.styleHashStore[generateUUIDFromString(styleStr)]
     if (!alreadyHaveThisStyle) return false
     if (judgeSubs(subs)) false
   }
   return true
 }
 
-function handleMainStyle(cssString: string, name: string | undefined, same: boolean) {
-  if (same) return hashHolder[cssString]
-  if (!name) name = hashHolder[cssString] ?? `easy-css-${rand.randStr()}`
-  else if (name.endsWith("$")) name = hashHolder[cssString] ?? `${name.slice(0, -1)}-${rand.randStr()}`
-  else if (conflictNameStore[name]) {
-    name = `${name}${conflictNameStore[name]}`
-    conflictNameStore[name]++
+function handleMainStyle(cssString: string, name: string | undefined, same: boolean, filePath?: string) {
+  const cssId = generateUUIDFromString(cssString)
+  if (same) return easyStore.nameHashStore[cssId]
+  if (name === undefined) name = easyStore.nameHashStore[cssString] ?? `easy-css-${rand.randStr()}`
+  else if (name.endsWith("$")) name = easyStore.nameHashStore[cssString] ?? `${name.slice(0, -1)}-${rand.randStr()}`
+  else if (easyStore.conflictNameStore[name] !== undefined) {
+    easyStore.conflictNameStore[name]++
+    name = `${name}${easyStore.conflictNameStore[name] - 1}`
   } else {
-    conflictNameStore[name] = 0
+    easyStore.conflictNameStore[name] = 1
   }
 
-  hashHolder[cssString] = name
-  easyStore[name] = cssString
-  injectStyle(`.${name}{${cssString}}`, name)
+  easyStore.nameHashStore[cssId] = name
+  injectStyle(`.${name}{${cssString}}`, name, filePath)
   return name
 }
 
-function handleSubStyles(mainName: string, subStyles: EasyStyleWithSub[]) {
+function handleSubStyles(mainName: string, subStyles: EasyStyleWithSub[], filePath?: string) {
   for (const { styleStr, subs } of subStyles) {
     const styleString = typeof styleStr === "string" ? styleStr : styleStr(mainName)
-    if (allStyles.includes(styleString)) return
-    injectStyle(styleString, mainName)
+    const hash = generateUUIDFromString(styleString)
+    if (easyStore.styleHashStore[hash]) return
+    easyStore.styleHashStore[hash] = true
+    injectStyle(styleString, mainName, filePath)
     handleSubStyles(mainName, subs)
   }
 }
-
-function parseSub(str: string) {
-  let output = ""
-  const subs: Array<{ name: string, content: string }> = []
-
-  let idx = 0
-  let nameBuffer = ""
-  while (idx < str.length) {
-    const c = str[idx]
-    if (c === ";") {
-      output += nameBuffer + ";"
-      nameBuffer = ""
-    } else if (c === "{") {
-      let depth = 1
-      let subContent = ""
-      idx++
-      while (idx < str.length) {
-        const c = str[idx]
-        if (c === "{") depth++
-        else if (c === "}") depth--
-        if (depth === 0) break
-        subContent += c
-        idx++
-      }
-      subs.push({ name: nameBuffer, content: subContent })
-      nameBuffer = ""
-    } else {
-      nameBuffer += c
-    }
-    idx++
-  }
-
-  return { output, subs }
-}
-
-export default css
