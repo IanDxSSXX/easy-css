@@ -1,5 +1,6 @@
 import * as t from "@babel/types"
 import { css, easyStore } from "@iandx/easy-css"
+import { minimatch } from "minimatch"
 
 type EasyStore = typeof easyStore
 
@@ -76,15 +77,94 @@ function toHyphenatedCase(str: string) {
     .toLowerCase()
 }
 
-interface EasyCssOption {
+export interface EasyCssOption {
+  /**
+   * Files that will be included
+   * @default ** /*.{js,ts}
+   */
+  files?: string | string[]
+  /**
+   * Files that will be excludes
+   * @default ** /{dist,node_modules,lib}/*.{js,ts}
+   */
+  excludeFiles?: string | string[]
+  /**
+   * # Pre-parse utilities
+   * ---
+   * ## e.g.0
+   * in config
+   * ```js
+   * const utilities = [{
+   *  easyFuncMap: {
+   *    margin: value => css`margin: ${value}px`
+   *  }
+   * }]
+   * ```
+   * in code
+   * ```js
+   * const hi = margin(20)
+   * // will be pre-parsed as
+   * const hi = "margin-20"
+   *```
+   * ---
+   * ## e.g.1
+   * using safeName in config
+   * ```js
+   * const utilities = [{
+   *  easyFuncMap: {
+   *    margin: value => css`margin: ${value}px`
+   *  },
+   *  safeName: "Style"
+   * }]
+   * ```
+   * in code
+   * ```js
+   * const hi = margin(20)
+   * // won't be pre-parsed because of the safe name
+   * const hello = Style.margin(20)
+   * // will be pre-parsed
+   * const hello = "margin-20"
+   * ```
+   * ---
+   * # Off-the-shelf pre-parsing
+   * We offer two off-the-shelf packages:
+   * * \@iandx/easy-css-atomic
+   *   * contains all style like margin, display, ...
+   * * \@iandx/easy-css-utility
+   *   * provide some handy utilities like textRed500, absolute, ...
+   *
+   * in config
+   * ```js
+   * import atomic from "@iandx/easy-css-atomic"
+   * import atomic from "@iandx/easy-css-utility"
+   * const utilities = [{
+   *  easyFuncMap: atomic,
+   *  safeName: "anyNameYouWantOrNone"
+   * }, {
+   *  easyFuncMap: utility
+   * }]
+   * ```
+   */
   utilities?: Array<{
     easyFuncMap: Record<string, ((...args: any) => string)>
     safeName?: string
   }>
+  /**
+   * Import module name
+   * @default @iandx/easy-css
+   */
   easyCssAlias?: string
 }
 
-export default function(api: any, { utilities, easyCssAlias = "@iandx/easy-css" }: EasyCssOption) {
+export default function(api: any, options: EasyCssOption = {}) {
+  const {
+    utilities,
+    easyCssAlias = "@iandx/easy-css",
+    files: preFiles = "**/*.{js,ts}",
+    excludeFiles: preExcludeFiles = "**/{dist,node_modules,lib}/*.{js,ts}"
+  } = options
+  const files = Array.isArray(preFiles) ? preFiles : [preFiles]
+  const excludeFiles = Array.isArray(preExcludeFiles) ? preExcludeFiles : [preExcludeFiles]
   const safeNames = utilities?.map(u => u.safeName).filter(Boolean) ?? []
   const isDev = process.env.NODE_ENV !== "production"
 
@@ -106,10 +186,26 @@ export default function(api: any, { utilities, easyCssAlias = "@iandx/easy-css" 
 
   const hmrStore: Record<string, EasyStore> = {}
 
+  let enter = false
+
   return {
     visitor: {
       Program: {
         enter(path: any, state: any) {
+          enter = false
+          for (const allowedPath of files) {
+            if (minimatch(state.filename, allowedPath)) {
+              enter = true
+              continue
+            }
+          }
+          for (const notAllowedPath of excludeFiles) {
+            if (minimatch(state.filename, notAllowedPath)) {
+              enter = false
+              continue
+            }
+          }
+          if (!enter) return
           if (hmrStore[state.filename]) {
             abandonEasyStore(hmrStore[state.filename])
           }
@@ -121,6 +217,7 @@ export default function(api: any, { utilities, easyCssAlias = "@iandx/easy-css" 
           }
         },
         exit(path: any, state: any) {
+          if (!enter) return
           const currentEasyStore = hmrStore[state.filename]
           if (currentEasyStore.styleList.length === 0 &&
             Object.keys(currentEasyStore.conflictNameStore).length === 0 &&
@@ -176,6 +273,7 @@ export default function(api: any, { utilities, easyCssAlias = "@iandx/easy-css" 
         }
       },
       ImportDeclaration(path: any) {
+        if (!enter) return
         const node = path.node as t.ImportDeclaration
         const allImports = node.specifiers
           .filter(n => t.isImportSpecifier(n) && t.isIdentifier(n.imported))
@@ -185,6 +283,7 @@ export default function(api: any, { utilities, easyCssAlias = "@iandx/easy-css" 
         this.easyCss = true
       },
       TaggedTemplateExpression(path: any, state: any) {
+        if (!enter) return
         if (!this.easyCss) return
         const node = path.node as t.TaggedTemplateExpression
         if (!t.isIdentifier(node.tag) || node.tag.name !== "css") return
@@ -196,19 +295,26 @@ export default function(api: any, { utilities, easyCssAlias = "@iandx/easy-css" 
           parentPath = parentPath.parentPath
           parentNode = parentPath.node
         }
-        const getEasyName = (name: string) => {
-          name = toHyphenatedCase(name)
-          // ---- only pre-parse for non-function and static string
+        const getEasyName = (name?: string) => {
+          name = name ? toHyphenatedCase(name) : undefined
           if (!params && node.quasi.quasis.length === 1) {
+            // --eg const a = css`color: red;`
             const cssString = node.quasi.quasis[0].value.raw
             const oldEasyStore = getOldEasyStore()
             const styleName = css.collect(cssString, name)
             renewCurrEasyStore(hmrStore[state.filename], oldEasyStore)
             return { parsed: true, node: t.stringLiteral(styleName) }
           }
+          if (!name) {
+            // --eg console.log(css`color: blue;`)
+            return { parsed: false, node: t.identifier("undefined") }
+          }
           if (!params || params.length === 0) {
+            // --eg const b = () => css`color: blue;`
+            // --or const c = css`color${ok}
             return { parsed: false, node: t.stringLiteral(name) }
           }
+          // --eg const d = css`color${ok}
           return {
             parsed: false,
             node: t.templateLiteral(
@@ -284,17 +390,21 @@ export default function(api: any, { utilities, easyCssAlias = "@iandx/easy-css" 
           path.skip()
           return
         }
+        const easy = getEasyName()
         path.replaceWith(
-          t.callExpression(
-            t.memberExpression(
-              t.identifier("css"),
-              t.identifier("collect")
-            ), [node.quasi, t.identifier("undefined"), pathNode]
-          )
+          easy.parsed
+            ? easy.node
+            : t.callExpression(
+              t.memberExpression(
+                t.identifier("css"),
+                t.identifier("collect")
+              ), [node.quasi, easy.node, pathNode]
+            )
         )
         path.skip()
       },
       CallExpression(path: any, state: any) {
+        if (!enter) return
         if (!utilities) return
         const node = path.node
         if (safeNames.length === 0 && t.isMemberExpression(node.callee)) return
@@ -303,17 +413,36 @@ export default function(api: any, { utilities, easyCssAlias = "@iandx/easy-css" 
           t.isIdentifier(node.callee.object) &&
           safeNames.includes(node.callee.object.name)
         )) return
+        const args: Array<string | boolean | number> = []
         for (const argument of node.arguments) {
-          if (!t.isStringLiteral(argument)) return
+          if (t.isStringLiteral(argument)) {
+            // margin("20px")
+            args.push(argument.value)
+            continue
+          }
+          if (t.isTemplateLiteral(argument) && argument.quasis.length === 1) {
+            // margin(`20px`)
+            args.push(argument.quasis[0].value.raw)
+            continue
+          }
+          if (t.isNumericLiteral(argument)) {
+            // margin(20)
+            args.push(argument.value)
+            continue
+          }
+          if (t.isBooleanLiteral(argument)) {
+            args.push(argument.value)
+            continue
+          }
+          return
         }
         const utilityName = safeNames.length === 0 ? node.callee.name : node.callee.property.name
-        const args = node.arguments.map((arg: t.StringLiteral) => arg.value)
         for (const { easyFuncMap, safeName } of utilities) {
           if (safeName && node.callee.object.name !== safeName) continue
-          const utility = easyFuncMap[utilityName]
-          if (!utility) continue
+          const utilFunc = easyFuncMap[utilityName]
+          if (!utilFunc) continue
           const oldEasyStore = getOldEasyStore()
-          const styleName = utility(...args)
+          const styleName = utilFunc(...args)
           renewCurrEasyStore(hmrStore[state.filename], oldEasyStore)
           path.replaceWith(t.stringLiteral(styleName))
           path.skip()

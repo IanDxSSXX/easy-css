@@ -61,8 +61,9 @@ export function css(strings: TemplateStringsArray, ...values: any[]) {
 
 css.collect = (cssString: string, name?: string, filePath?: string) => {
   const easyStyle = parseToEasyStyle(cssString)
-  const same = judge(name, easyStyle)
-  const mainName = handleMainStyle(easyStyle.cssStr, name, same, filePath)
+  const cssId = generateUUIDFromString(easyStyle.cssStr)
+  const contentSame = judge(easyStyle, cssId)
+  const mainName = handleMainStyle(cssId, easyStyle.cssStr, name, contentSame, filePath)
   handleSubStyles(mainName, easyStyle.subs, filePath)
 
   return mainName
@@ -124,9 +125,8 @@ function parseToEasyStyle(cssString: string): EasyStyle {
   return { cssStr: newCssStr, subs }
 }
 
-function judge(name: string | undefined, easyStyle: EasyStyle) {
-  if (!name) return false
-  const mainTheSame = easyStore.conflictNameStore[name] !== undefined
+function judge(easyStyle: EasyStyle, cssId: string) {
+  const mainTheSame = easyStore.nameHashStore[cssId] !== undefined
   const subsTheSame = judgeSubs(easyStyle.subs)
   return mainTheSame && subsTheSame
 }
@@ -137,14 +137,13 @@ function judgeSubs(easyStylesWithSub: EasyStyleWithSub[]) {
     if (mustBeUnique) return false
     const alreadyHaveThisStyle = easyStore.styleHashStore[generateUUIDFromString(styleStr)]
     if (!alreadyHaveThisStyle) return false
-    if (judgeSubs(subs)) false
+    if (!judgeSubs(subs)) false
   }
   return true
 }
 
-function handleMainStyle(cssString: string, name: string | undefined, same: boolean, filePath?: string) {
-  const cssId = generateUUIDFromString(cssString)
-  if (same || easyStore.nameHashStore[cssId]) return easyStore.nameHashStore[cssId]
+function handleMainStyle(cssId: string, cssString: string, name: string | undefined, contentSame: boolean, filePath?: string) {
+  if (contentSame) return easyStore.nameHashStore[cssId]
   if (name === undefined) name = easyStore.nameHashStore[cssId] ?? `easy-css-${rand.randStr()}`
   else if (name.endsWith("$")) name = easyStore.nameHashStore[cssId] ?? `${name.slice(0, -1)}-${rand.randStr()}`
   else if (easyStore.conflictNameStore[name] !== undefined) {

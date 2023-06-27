@@ -12,10 +12,10 @@ export const rand = {
   }
 }
 
-export function generateUUIDFromString(inputString: string) {
+export function generateUUIDFromString(inputString: string): string {
   let hash = 0
   if (inputString.length === 0) {
-    return hash
+    return ""
   }
   for (let i = 0; i < inputString.length; i++) {
     const char = inputString.charCodeAt(i)

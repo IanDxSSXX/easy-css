@@ -88,21 +88,15 @@ ok()
 // }
 // console.timeEnd("0")
 
-const a = 100
 const t = AA.margin("20px")
-AA.padding("10px")
-console.log(css`padding:10px;`)
-console.log(css`padding:10px;`)
-console.log(css`padding:10px;`)
-const fuck = css`
-    a: ${a};
-    .jj {
-        b:1000;
-    }
-`
-console.log(easyStore)
-
-console.log(fuck)
+const world = css`
+      color: green;
+    `
+const object = {
+  world: css`
+        color: white;
+      `
+}
 
 document.getElementById("app")!.innerHTML = `
 <div class="" viewBox="0 0 24 24">
@@ -111,3 +105,5 @@ document.getElementById("app")!.innerHTML = `
 </div></div>
 <div class="${t} ${AA.color("red")}">ok</div>
     `
+
+AA.margin("300px")

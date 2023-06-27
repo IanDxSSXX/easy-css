@@ -27,7 +27,7 @@ for (const key of Atomic) {
   " * ```\n" +
   " */\n"
   )
-  a += `export const ${key}: Atomic<Property.${key[0].toUpperCase() + key.slice(1)}> = value => css\`${toHyphenatedCase(key)}: \${value}\`\n`
+  a += `export const ${key}: Atomic<Property.${key[0].toUpperCase() + key.slice(1)}> = value => css\`${toHyphenatedCase(key)}: \${value};\`\n`
 }
 console.log(a)
 fs.writeFileSync("./src/atomic.ts", a)
