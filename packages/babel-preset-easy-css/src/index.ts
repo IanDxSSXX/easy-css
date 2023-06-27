@@ -14,6 +14,7 @@ interface EasyCssOption {
     easyFuncMap: Record<string, ((...args: any) => string)>
     safeName?: string
   }>
+  easyCssAlias?: string
 }
 
 export default function(api: any, options: EasyCssOption) {

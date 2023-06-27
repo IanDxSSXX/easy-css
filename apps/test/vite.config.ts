@@ -9,7 +9,6 @@ export default defineConfig({
   },
   sourceMap: true,
   plugins: [easyCss({
-    entryFile: "src/index.ts",
     utilities: [{
       easyFuncMap: atomic,
       safeName: "AA"

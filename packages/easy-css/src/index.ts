@@ -11,10 +11,6 @@ export const easyStore: EasyStore = {
   styleHashStore: {}
 }
 
-export const state = {
-  dev: false
-}
-
 export function clearStore() {
   easyStore.nameHashStore = {}
   easyStore.styleHashStore = {}
@@ -22,50 +18,13 @@ export function clearStore() {
   easyStore.styleList = []
 }
 
-export function inheritEasyStore(newEasyStore: EasyStore) {
+export function preParseEasyStore(newEasyStore: EasyStore, path?: string) {
   easyStore.styleList = [...easyStore.styleList, ...newEasyStore.styleList]
   easyStore.conflictNameStore = { ...easyStore.conflictNameStore, ...newEasyStore.conflictNameStore }
   easyStore.nameHashStore = { ...easyStore.nameHashStore, ...newEasyStore.nameHashStore }
   easyStore.styleHashStore = { ...easyStore.styleHashStore, ...newEasyStore.styleHashStore }
-}
-
-export function abandonEasyStore(oldEasyStore: EasyStore) {
-  easyStore.styleList = easyStore.styleList.filter(s => !oldEasyStore.styleList.includes(s))
-  easyStore.conflictNameStore = Object.fromEntries(
-    Object.entries(easyStore.conflictNameStore).filter(([key]) => (
-      !Object.keys(oldEasyStore.conflictNameStore).includes(key))
-    )
-  )
-  easyStore.nameHashStore = Object.fromEntries(
-    Object.entries(easyStore.nameHashStore).filter(([key]) => (
-      !Object.keys(oldEasyStore.nameHashStore).includes(key))
-    )
-  )
-  easyStore.styleHashStore = Object.fromEntries(
-    Object.entries(easyStore.styleHashStore).filter(([key]) => (
-      !Object.keys(oldEasyStore.styleHashStore).includes(key))
-    )
-  )
-}
-
-export function diffEasyStore(oldEasyStore: EasyStore): EasyStore {
-  return {
-    styleList: easyStore.styleList.filter(s => !oldEasyStore.styleList.includes(s)),
-    conflictNameStore: Object.fromEntries(
-      Object.entries(easyStore.conflictNameStore).filter(([key]) => (
-        oldEasyStore.conflictNameStore[key] === undefined
-      ))
-    ),
-    nameHashStore: Object.fromEntries(
-      Object.entries(easyStore.nameHashStore).filter(([key]) => (
-        oldEasyStore.nameHashStore[key] === undefined
-      ))
-    ),
-    styleHashStore: Object.fromEntries(
-      Object.entries(easyStore.styleHashStore).filter(([key]) => (
-        oldEasyStore.styleHashStore[key] === undefined
-      ))
-    )
+  if (typeof document !== "undefined" && easyStore.styleList.length > 0) {
+    injectStyleToDOM(newEasyStore.styleList.join(""), "✨pre-parsed", path)
   }
 }
 
@@ -76,10 +35,6 @@ export function geneEasyStyle() {
 function injectStyle(style: string, key: string, filePath?: string) {
   easyStore.styleList.push(style)
   injectStyleToDOM(style, key, filePath)
-}
-
-export function injectListStyle() {
-  if (easyStore.styleList.length > 0) injectStyleToDOM(easyStore.styleList.join(""), "✨pre-parsed")
 }
 
 function injectStyleToDOM(style: string, key: string, filePath?: string) {
@@ -104,17 +59,7 @@ export function css(strings: TemplateStringsArray, ...values: any[]) {
   }, "")
 }
 
-function getFilePath() {
-  const stackTrace = new Error().stack
-  const callerLine = stackTrace?.split("\n")[3]
-  const callerPathAndLine = callerLine?.trim().match(/\(?([^)]+)\)?/)?.[1]
-  const filePath = callerPathAndLine?.split(" ")[1]?.replace(/^https?:\/\//, "").split("/").slice(1).join("/").split("?")[0]
-
-  return filePath
-}
-
-css.collect = (cssString: string, name?: string) => {
-  const filePath = state.dev ? getFilePath() : undefined
+css.collect = (cssString: string, name?: string, filePath?: string) => {
   const easyStyle = parseToEasyStyle(cssString)
   const same = judge(name, easyStyle)
   const mainName = handleMainStyle(easyStyle.cssStr, name, same, filePath)
@@ -199,9 +144,9 @@ function judgeSubs(easyStylesWithSub: EasyStyleWithSub[]) {
 
 function handleMainStyle(cssString: string, name: string | undefined, same: boolean, filePath?: string) {
   const cssId = generateUUIDFromString(cssString)
-  if (same) return easyStore.nameHashStore[cssId]
-  if (name === undefined) name = easyStore.nameHashStore[cssString] ?? `easy-css-${rand.randStr()}`
-  else if (name.endsWith("$")) name = easyStore.nameHashStore[cssString] ?? `${name.slice(0, -1)}-${rand.randStr()}`
+  if (same || easyStore.nameHashStore[cssId]) return easyStore.nameHashStore[cssId]
+  if (name === undefined) name = easyStore.nameHashStore[cssId] ?? `easy-css-${rand.randStr()}`
+  else if (name.endsWith("$")) name = easyStore.nameHashStore[cssId] ?? `${name.slice(0, -1)}-${rand.randStr()}`
   else if (easyStore.conflictNameStore[name] !== undefined) {
     easyStore.conflictNameStore[name]++
     name = `${name}${easyStore.conflictNameStore[name] - 1}`

@@ -1,8 +1,7 @@
 
-import { css, easyStore, state } from "@iandx/easy-css"
+import { css, easyStore } from "@iandx/easy-css"
 import * as AA from "@iandx/easy-css-atomic"
 import { ok } from "./sub"
-state.dev = (import.meta as any).env.DEV
 ok()
 // import * as BB from "@iandx/easy-css-utility"
 // import { css as hhCss } from "@emotion/css"
@@ -92,13 +91,16 @@ ok()
 const a = 100
 const t = AA.margin("20px")
 AA.padding("10px")
+console.log(css`padding:10px;`)
+console.log(css`padding:10px;`)
+console.log(css`padding:10px;`)
 const fuck = css`
     a: ${a};
     .jj {
         b:1000;
     }
 `
-console.log(easyStore.styleList)
+console.log(easyStore)
 
 console.log(fuck)
 

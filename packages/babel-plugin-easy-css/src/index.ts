@@ -1,5 +1,67 @@
 import * as t from "@babel/types"
-import { css, easyStore, abandonEasyStore, diffEasyStore } from "@iandx/easy-css"
+import { css, easyStore } from "@iandx/easy-css"
+
+type EasyStore = typeof easyStore
+
+function abandonEasyStore(oldEasyStore: EasyStore) {
+  easyStore.styleList = easyStore.styleList.filter(s => !oldEasyStore.styleList.includes(s))
+  easyStore.conflictNameStore = Object.fromEntries(
+    Object.entries(easyStore.conflictNameStore).filter(([key]) => (
+      !Object.keys(oldEasyStore.conflictNameStore).includes(key))
+    )
+  )
+  easyStore.nameHashStore = Object.fromEntries(
+    Object.entries(easyStore.nameHashStore).filter(([key]) => (
+      !Object.keys(oldEasyStore.nameHashStore).includes(key))
+    )
+  )
+  easyStore.styleHashStore = Object.fromEntries(
+    Object.entries(easyStore.styleHashStore).filter(([key]) => (
+      !Object.keys(oldEasyStore.styleHashStore).includes(key))
+    )
+  )
+}
+
+function diffEasyStore(oldEasyStore: EasyStore): EasyStore {
+  return {
+    styleList: easyStore.styleList.filter(s => !oldEasyStore.styleList.includes(s)),
+    conflictNameStore: Object.fromEntries(
+      Object.entries(easyStore.conflictNameStore).filter(([key]) => (
+        oldEasyStore.conflictNameStore[key] === undefined
+      ))
+    ),
+    nameHashStore: Object.fromEntries(
+      Object.entries(easyStore.nameHashStore).filter(([key]) => (
+        oldEasyStore.nameHashStore[key] === undefined
+      ))
+    ),
+    styleHashStore: Object.fromEntries(
+      Object.entries(easyStore.styleHashStore).filter(([key]) => (
+        oldEasyStore.styleHashStore[key] === undefined
+      ))
+    )
+  }
+}
+
+function getRelativePath(targetFile: string) {
+  const currentFolder = process.cwd()
+  const currentFolderArr = currentFolder.split("/")
+  const targetFileArr = targetFile.split("/")
+  let i = 0
+  while (currentFolderArr[i] === targetFileArr[i]) {
+    i++
+  }
+  let relativePath = ""
+  for (let j = i; j < currentFolderArr.length - 1; j++) {
+    relativePath += "../"
+  }
+  for (let j = i; j < targetFileArr.length; j++) {
+    relativePath += targetFileArr[j] + "/"
+  }
+  relativePath = relativePath.slice(0, -1)
+
+  return relativePath
+}
 
 function trimUnderline(str: string) {
   return str.replace(/^_+|_+$/g, "")
@@ -19,12 +81,12 @@ interface EasyCssOption {
     easyFuncMap: Record<string, ((...args: any) => string)>
     safeName?: string
   }>
+  easyCssAlias?: string
 }
 
-type EasyStore = typeof easyStore
-
-export default function(api: any, { utilities }: EasyCssOption) {
+export default function(api: any, { utilities, easyCssAlias = "@iandx/easy-css" }: EasyCssOption) {
   const safeNames = utilities?.map(u => u.safeName).filter(Boolean) ?? []
+  const isDev = process.env.NODE_ENV !== "production"
 
   const renewCurrEasyStore = (currentEasyStore: EasyStore, oldEasyStore: EasyStore) => {
     const diffStore = diffEasyStore(oldEasyStore)
@@ -65,12 +127,11 @@ export default function(api: any, { utilities }: EasyCssOption) {
             Object.keys(currentEasyStore.nameHashStore).length === 0 &&
             Object.keys(currentEasyStore.styleHashStore).length === 0
           ) return
-          // console.log(easyStore)
 
           const id = Math.random().toString(32).slice(2, 8)
           const injectBodyNode = t.blockStatement([
             t.expressionStatement(
-              t.callExpression(t.identifier(`inheritEasyStore_${id}`), [
+              t.callExpression(t.identifier(`preParseEasyStore_${id}`), [
                 t.objectExpression([
                   t.objectProperty(t.identifier("styleList"), t.arrayExpression(
                     currentEasyStore.styleList.map((str: string) => t.stringLiteral(str))
@@ -93,11 +154,9 @@ export default function(api: any, { utilities }: EasyCssOption) {
                       t.booleanLiteral(value)
                     ))
                   ))
-                ])
+                ]),
+                isDev ? t.stringLiteral(getRelativePath(state.filename)) : t.identifier("undefined")
               ])
-            ),
-            t.expressionStatement(
-              t.callExpression(t.identifier(`injectListStyle_${id}`), [])
             )
           ])
           const injectNode = t.expressionStatement(
@@ -108,10 +167,9 @@ export default function(api: any, { utilities }: EasyCssOption) {
           )
           const importNode = t.importDeclaration(
             [
-              t.importSpecifier(t.identifier(`inheritEasyStore_${id}`), t.identifier("inheritEasyStore")),
-              t.importSpecifier(t.identifier(`injectListStyle_${id}`), t.identifier("injectListStyle"))
+              t.importSpecifier(t.identifier(`preParseEasyStore_${id}`), t.identifier("preParseEasyStore"))
             ],
-            t.stringLiteral("@iandx/easy-css")
+            t.stringLiteral(easyCssAlias)
           )
           path.node.body.unshift(injectNode)
           path.node.body.unshift(importNode)
@@ -123,7 +181,7 @@ export default function(api: any, { utilities }: EasyCssOption) {
           .filter(n => t.isImportSpecifier(n) && t.isIdentifier(n.imported))
           .map((n: any) => n.imported.name)
         if (!allImports.includes("css")) return
-        if (node.source.value !== "@iandx/easy-css") return
+        if (node.source.value !== easyCssAlias) return
         this.easyCss = true
       },
       TaggedTemplateExpression(path: any, state: any) {
@@ -163,6 +221,7 @@ export default function(api: any, { utilities }: EasyCssOption) {
             )
           }
         }
+        const pathNode = isDev ? t.stringLiteral(getRelativePath(state.filename)) : t.identifier("undefined")
         if (t.isVariableDeclarator(parentNode)) {
           if (!t.isIdentifier(parentNode.id)) return
           const easy = getEasyName(parentNode.id.name)
@@ -174,7 +233,7 @@ export default function(api: any, { utilities }: EasyCssOption) {
                   t.identifier("css"),
                   t.identifier("collect")
                 ),
-                [node.quasi, easy.node]
+                [node.quasi, easy.node, pathNode]
               )
           )
           path.skip()
@@ -191,7 +250,7 @@ export default function(api: any, { utilities }: EasyCssOption) {
                   t.identifier("css"),
                   t.identifier("collect")
                 ),
-                [node.quasi, easy.node]
+                [node.quasi, easy.node, pathNode]
               )
           )
           path.skip()
@@ -217,7 +276,8 @@ export default function(api: any, { utilities }: EasyCssOption) {
                   node.quasi,
                   parentNode.computed
                     ? parentNode.key
-                    : easy.node
+                    : easy.node,
+                  pathNode
                 ]
               )
           )
@@ -229,7 +289,7 @@ export default function(api: any, { utilities }: EasyCssOption) {
             t.memberExpression(
               t.identifier("css"),
               t.identifier("collect")
-            ), [node.quasi]
+            ), [node.quasi, t.identifier("undefined"), pathNode]
           )
         )
         path.skip()

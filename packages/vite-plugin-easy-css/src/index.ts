@@ -12,12 +12,16 @@ interface EasyCssOption {
     safeName?: string
   }>
   /**
+   * @default @iandx/easy-css
+   */
+  easyCssAlias?: string
+  /**
    * @default [".js", ".ts", ".jsx", ".tsx"]
    */
   appendix?: string[]
 }
 
-export default function(options: EasyCssOption) {
+export default function(options: EasyCssOption = {}) {
   const { appendix = [".js", ".ts", ".jsx", ".tsx"] } = options
   return {
     name: "EasyCss",

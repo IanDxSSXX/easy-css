@@ -1,6 +1,13 @@
 {
   "name": "@iandx/easy-css-monorepo",
-  "version": "0.0.0",
+  "version": "0.8.1",
+  "scripts": {
+    "prepare": "husky install",
+    "pipeline": "sh ./scripts/pipeline.sh",
+    "build": "pnpm pipeline build",
+    "pub": "pnpm pipeline publish",
+    "newVersion": "pnpm pipeline newVersion"
+  },
   "devDependencies": {
     "@commitlint/cli": "^17.6.3",
     "@commitlint/config-conventional": "^17.6.3",
@@ -12,5 +19,13 @@
     "eslint-plugin-promise": "^6.1.1",
     "husky": "^8.0.3",
     "typescript": "^4.9.5"
-  }
+  },
+  "packages": [
+    "easy-css",
+    "easy-css-atomic",
+    "easy-css-utility",
+    "babel-plugin-easy-css",
+    "babel-preset-easy-css",
+    "vite-plugin-easy-css"
+  ]
 }
