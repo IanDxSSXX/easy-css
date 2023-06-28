@@ -90,10 +90,12 @@ importers:
   packages/easy-css:
     specifiers:
       autoprefixer: ^10.4.14
+      csstype: ^3.1.1
       tsup: ^6.5.0
     dependencies:
       autoprefixer: 10.4.14
     devDependencies:
+      csstype: 3.1.2
       tsup: 6.6.3
 
   packages/easy-css-atomic:

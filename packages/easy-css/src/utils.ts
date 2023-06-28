@@ -30,3 +30,7 @@ export function generateUUIDFromString(inputString: string): string {
   }
   return uuid
 }
+
+export function minify(str: string) {
+  return str.replace(/\n/g, "").replace(/\/\*(\n|.)+?\*\//g, "").replace(/\s*([:;,{}])\s*/g, "$1").trim()
+}
