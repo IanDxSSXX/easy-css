@@ -149,11 +149,12 @@ function handleMainStyle(cssId: string, cssString: string, name: string | undefi
   else if (easyStore.conflictNameStore[name] !== undefined) {
     easyStore.conflictNameStore[name]++
     name = `${name}${easyStore.conflictNameStore[name] - 1}`
+    easyStore.nameHashStore[cssId] = name
   } else {
     easyStore.conflictNameStore[name] = 1
+    easyStore.nameHashStore[cssId] = name
   }
 
-  easyStore.nameHashStore[cssId] = name
   injectStyle(`.${name}{${cssString}}`, name, filePath)
   return name
 }

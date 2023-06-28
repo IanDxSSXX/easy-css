@@ -2,6 +2,11 @@
 import { css, easyStore } from "@iandx/easy-css"
 import * as AA from "@iandx/easy-css-atomic"
 import { ok } from "./sub"
+const tttt = css`
+        color:${"red"};
+      `
+console.log("ok")
+
 ok()
 // import * as BB from "@iandx/easy-css-utility"
 // import { css as hhCss } from "@emotion/css"
@@ -88,7 +93,7 @@ ok()
 // }
 // console.timeEnd("0")
 
-const t = AA.margin("20px")
+const t = AA.margin("20xx")
 const world = css`
       color: green;
     `
@@ -97,13 +102,21 @@ const object = {
         color: white;
       `
 }
+const jj = css`
+> * + *{
+  margin-left: 5px;
 
+}
+`
 document.getElementById("app")!.innerHTML = `
 <div class="" viewBox="0 0 24 24">
 <div  viewBox="0 0 24 24">
   <!-- ... -->
 </div></div>
-<div class="${t} ${AA.color("red")}">ok</div>
+<div class="${jj}">
+<div>a</div>
+<div>b</div>
+<div>c</div>
+</div>
     `
-
 AA.margin("300px")

@@ -1,37 +1,5 @@
-import fs from "fs"
-
-function toCamelCase(str) {
-  return str.replace(/-([a-z])/g, (match, p1) => p1.toUpperCase()).replace(/([0-9])[-/]([0-9])/g, "$1_$2").replace(/\./g, "__").replace(/-/g, "")
-}
-
-function toHyphenatedCase(str) {
-  return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()
-}
-
-function getStr() {
-  const title = document.getElementsByClassName("inline-block text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight dark:text-slate-200")[0].innerText
-  const table = document.getElementsByClassName("w-full text-left border-collapse")[0]
-  const tableBody = table.getElementsByClassName("align-baseline")[0]
-  let str = `  // ${title}\n`
-  for (const pair of tableBody.children) {
-    const key = pair.children[0].innerText
-    const value = pair.children[1].innerText.trim().replace(/\n/g, "").replace(/"/g, "\\\"")
-    str += `  "${key}": "${value}",\n`
-  }
-  console.log(str)
-  const el = document.createElement("textarea")
-  el.value = str
-  el.setAttribute("readonly", "")
-  el.style.position = "absolute"
-  el.style.left = "-9999px"
-  document.body.appendChild(el)
-  el.focus()
-  el.select()
-  document.execCommand("copy")
-  document.body.removeChild(el)
-}
-
-// ---------------
+/* eslint-disable @typescript-eslint/comma-dangle */
+/* eslint-disable quote-props */
 const tailwind = {
   // Aspect Ratio
   "aspect-auto": "aspect-ratio: auto;",
@@ -7912,26 +7880,3 @@ const tailwind = {
   "sr-only": "position: absolute;width: 1px;height: 1px;padding: 0;margin: -1px;overflow: hidden;clip: rect(0, 0, 0, 0);white-space: nowrap;border-width: 0;",
   "not-sr-only": "position: static;width: auto;height: auto;padding: 0;margin: 0;overflow: visible;clip: auto;white-space: normal;",
 }
-function spilt(str, dividers) {
-  let temp = str
-  for (const divider of dividers) {
-    temp = temp.split(divider).filter(Boolean).join(divider + "\n")
-  }
-  return temp.split("\n")
-}
-let a = "import { css } from \"@iandx/easy-css\"\ntype Utility = () => string\n"
-for (const key in tailwind) {
-  a += ("" +
-  "/**\n" +
-  " * ```css\n" +
-  ` * .${key} {\n` +
-  spilt(tailwind[key], [";", "{", "}"]).map(i => ` *   ${i};\n`).join("") +
-  " * }\n" +
-  " * ```\n" +
-  " */\n"
-  )
-  a += `export const ${toCamelCase(key)}: Utility = () => css\`${tailwind[key]}\`\n`
-}
-fs.writeFileSync("./src/index.ts", a)
-
-console.log(a)

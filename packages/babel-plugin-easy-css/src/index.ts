@@ -218,6 +218,8 @@ export default function(api: any, options: EasyCssOption = {}) {
         },
         exit(path: any, state: any) {
           if (!enter) return
+          // won't have any runtime and build time conflict because imports in es6 is hoisted
+          // and all the pre-parsed code will be executed first!
           const currentEasyStore = hmrStore[state.filename]
           if (currentEasyStore.styleList.length === 0 &&
             Object.keys(currentEasyStore.conflictNameStore).length === 0 &&
