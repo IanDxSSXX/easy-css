@@ -1,7 +1,7 @@
 import { type StyleType } from "./types"
 import { css } from "./css"
 export function style(styles: StyleType) {
-  return ""
+  return style.collect(styles)
 }
 
 function parseStyle(styles: StyleType) {

@@ -7,12 +7,12 @@ const tttt = css`
       `
 console.log("ok")
 
-console.log(style.collect({
+console.log(style({
   margin: "20px",
   ".shit": {
     padding: "100px"
   }
-}, "testMyshit"))
+}))
 
 ok()
 // import * as BB from "@iandx/easy-css-utility"

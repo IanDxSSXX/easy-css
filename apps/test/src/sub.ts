@@ -14,6 +14,6 @@ const tt = {
 
 console.log(css`shit: right;`)
 const tttt = css`
-        color:blue;
-      `
+  color:blue;
+`
 console.log(easyStore.conflictNameStore.tttt)

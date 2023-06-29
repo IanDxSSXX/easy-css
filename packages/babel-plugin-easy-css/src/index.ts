@@ -1,5 +1,5 @@
 import * as t from "@babel/types"
-import { css, easyStore } from "@iandx/easy-css"
+import { css, easyStore, style } from "@iandx/easy-css"
 import { minimatch } from "minimatch"
 
 type EasyStore = typeof easyStore
@@ -66,6 +66,40 @@ function getRelativePath(targetFile: string) {
 
 function trimUnderline(str: string) {
   return str.replace(/^_+|_+$/g, "")
+}
+
+function objectExpressionNodeToObject(node: t.ObjectExpression) {
+  const object: Record<string, string | number | boolean | object> = {}
+  for (const property of node.properties) {
+    if (!t.isObjectProperty(property)) return
+    const { key: keyNode, value: valueNode } = property
+    let key: string | undefined
+    if (t.isIdentifier(keyNode)) {
+      key = keyNode.name
+    } else if (t.isStringLiteral(keyNode)) {
+      key = keyNode.value
+    } else {
+      return
+    }
+    let value: string | number | boolean | object | undefined
+    if (t.isStringLiteral(valueNode)) {
+      value = valueNode.value
+    } else if (t.isTemplateLiteral(valueNode) && valueNode.quasis.length === 1) {
+      value = valueNode.quasis[0].value.raw
+    } else if (t.isNumericLiteral(valueNode)) {
+      value = valueNode.value
+    } else if (t.isBooleanLiteral(valueNode)) {
+      value = valueNode.value
+    } else if (t.isObjectExpression(valueNode)) {
+      value = objectExpressionNodeToObject(valueNode)
+      if (!value) return
+    } else {
+      return
+    }
+    object[key] = value
+  }
+
+  return object
 }
 
 function toHyphenatedCase(str: string) {
@@ -186,26 +220,23 @@ export default function(api: any, options: EasyCssOption = {}) {
 
   const hmrStore: Record<string, EasyStore> = {}
 
-  let enter = false
-
   return {
     visitor: {
       Program: {
         enter(path: any, state: any) {
-          enter = false
           for (const allowedPath of files) {
             if (minimatch(state.filename, allowedPath)) {
-              enter = true
-              continue
+              this.enter = true
+              break
             }
           }
           for (const notAllowedPath of excludeFiles) {
             if (minimatch(state.filename, notAllowedPath)) {
-              enter = false
-              continue
+              this.enter = false
+              break
             }
           }
-          if (!enter) return
+          if (!this.enter) return
           if (hmrStore[state.filename]) {
             abandonEasyStore(hmrStore[state.filename])
           }
@@ -217,7 +248,7 @@ export default function(api: any, options: EasyCssOption = {}) {
           }
         },
         exit(path: any, state: any) {
-          if (!enter) return
+          if (!this.enter) return
           // won't have any runtime and build time conflict because imports in es6 is hoisted
           // and all the pre-parsed code will be executed first!
           const currentEasyStore = hmrStore[state.filename]
@@ -275,18 +306,21 @@ export default function(api: any, options: EasyCssOption = {}) {
         }
       },
       ImportDeclaration(path: any) {
-        if (!enter) return
+        if (!this.enter) return
         const node = path.node as t.ImportDeclaration
         const allImports = node.specifiers
           .filter(n => t.isImportSpecifier(n) && t.isIdentifier(n.imported))
           .map((n: any) => n.imported.name)
-        if (!allImports.includes("css")) return
+        if (!allImports.includes("css") && !allImports.includes("style")) return
         if (node.source.value !== easyCssAlias) return
-        this.easyCss = true
+        const easyGroup = []
+        if (allImports.includes("css")) easyGroup.push("css")
+        if (allImports.includes("style")) easyGroup.push("style")
+        this.easyCss = easyGroup
       },
       TaggedTemplateExpression(path: any, state: any) {
-        if (!enter) return
-        if (!this.easyCss) return
+        if (!this.enter) return
+        if (!this.easyCss.includes("css")) return
         const node = path.node as t.TaggedTemplateExpression
         if (!t.isIdentifier(node.tag) || node.tag.name !== "css") return
         let parentPath = path.parentPath
@@ -406,9 +440,152 @@ export default function(api: any, options: EasyCssOption = {}) {
         path.skip()
       },
       CallExpression(path: any, state: any) {
-        if (!enter) return
+        if (!this.enter) return
+        const node = path.node as t.CallExpression
+        if (this.easyCss.includes("style")) {
+          // style
+          if (!(t.isIdentifier(node.callee) && node.callee.name === "style")) return
+          let parentPath = path.parentPath
+          let parentNode = parentPath.node
+          let params: t.Identifier[] | undefined
+          if (t.isArrowFunctionExpression(parentNode)) {
+            params = parentNode.params as any
+            parentPath = parentPath.parentPath
+            parentNode = parentPath.node
+          }
+          const getEasyName = (name?: string) => {
+            name = name ? toHyphenatedCase(name) : undefined
+            let allConstant = t.isObjectExpression(node.arguments[0])
+            if (allConstant) {
+              path.scope.traverse(node.arguments[0], {
+                ObjectProperty(path: any) {
+                  if (path.node.computed) {
+                    allConstant = false
+                    return
+                  }
+                  const value = path.node.value
+                  if (!(
+                    t.isStringLiteral(value) ||
+                    (t.isTemplateLiteral(value) && value.quasis.length === 1) ||
+                    t.isNumericLiteral(value) ||
+                    t.isBooleanLiteral(value) ||
+                    t.isObjectExpression(value)
+                  )) {
+                    allConstant = false
+                  }
+                }
+              })
+            }
+            if (!params && allConstant) {
+              // --eg const a = css`color: red;`
+              const styleObj = objectExpressionNodeToObject(node.arguments[0] as any)
+              const oldEasyStore = getOldEasyStore()
+              const styleName = style.collect(styleObj as any, name)
+              renewCurrEasyStore(hmrStore[state.filename], oldEasyStore)
+              return { parsed: true, node: t.stringLiteral(styleName) }
+            }
+            if (!name) {
+              // --eg console.log(css`color: blue;`)
+              return { parsed: false, node: t.identifier("undefined") }
+            }
+            if (!params || params.length === 0) {
+              // --eg const b = () => css`color: blue;`
+              // --or const c = css`color${ok}
+              return { parsed: false, node: t.stringLiteral(name) }
+            }
+            // --eg const d = css`color${ok}
+            return {
+              parsed: false,
+              node: t.templateLiteral(
+                [
+                  t.templateElement({ raw: `${name.endsWith("$") ? name.slice(0, -1) : name}-` }),
+                  ...params.slice(0, -1).map(_ => t.templateElement({ raw: "-" })),
+                  t.templateElement({ raw: name.endsWith("$") ? "$" : "" })
+                ],
+                params
+              )
+            }
+          }
+          const pathNode = isDev ? t.stringLiteral(getRelativePath(state.filename)) : t.identifier("undefined")
+          if (t.isVariableDeclarator(parentNode)) {
+            if (!t.isIdentifier(parentNode.id)) return
+            const easy = getEasyName(parentNode.id.name)
+            path.replaceWith(
+              easy.parsed
+                ? easy.node
+                : t.callExpression(
+                  t.memberExpression(
+                    t.identifier("style"),
+                    t.identifier("collect")
+                  ),
+                  [node.arguments[0], easy.node, pathNode]
+                )
+            )
+            path.skip()
+            return
+          }
+          if (t.isClassProperty(parentNode)) {
+            if (!t.isIdentifier(parentNode.key)) return
+            const easy = getEasyName(parentNode.key.name)
+            path.replaceWith(
+              easy.parsed
+                ? easy.node
+                : t.callExpression(
+                  t.memberExpression(
+                    t.identifier("style"),
+                    t.identifier("collect")
+                  ),
+                  [node.arguments[0], easy.node, pathNode]
+                )
+            )
+            path.skip()
+            return
+          }
+          if (t.isObjectProperty(parentNode)) {
+            if (t.isPrivateName(parentNode.key)) return
+            const easy = getEasyName(
+              t.isIdentifier(parentNode.key)
+                ? parentNode.key.name
+                : (parentNode.key as any).value
+            )
+
+            path.replaceWith(
+              easy.parsed
+                ? easy.node
+                : t.callExpression(
+                  t.memberExpression(
+                    t.identifier("style"),
+                    t.identifier("collect")
+                  ),
+                  [
+                    node.arguments[0],
+                    parentNode.computed
+                      ? parentNode.key
+                      : easy.node,
+                    pathNode
+                  ]
+                )
+            )
+            path.skip()
+            return
+          }
+          const easy = getEasyName()
+          path.replaceWith(
+            easy.parsed
+              ? easy.node
+              : t.callExpression(
+                t.memberExpression(
+                  t.identifier("style"),
+                  t.identifier("collect")
+                ), [node.arguments[0], easy.node, pathNode]
+              )
+          )
+          path.skip()
+          return
+        }
+
+        // ---- utilities
         if (!utilities) return
-        const node = path.node
         if (safeNames.length === 0 && t.isMemberExpression(node.callee)) return
         if (safeNames.length !== 0 && !(
           t.isMemberExpression(node.callee) &&
@@ -438,9 +615,9 @@ export default function(api: any, options: EasyCssOption = {}) {
           }
           return
         }
-        const utilityName = safeNames.length === 0 ? node.callee.name : node.callee.property.name
+        const utilityName = safeNames.length === 0 ? (node.callee as any).name : (node.callee as any).property.name
         for (const { easyFuncMap, safeName } of utilities) {
-          if (safeName && node.callee.object.name !== safeName) continue
+          if (safeName && (node.callee as any).object.name !== safeName) continue
           const utilFunc = easyFuncMap[utilityName]
           if (!utilFunc) continue
           const oldEasyStore = getOldEasyStore()
