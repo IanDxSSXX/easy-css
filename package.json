@@ -1,6 +1,6 @@
 {
   "name": "@iandx/easy-css-monorepo",
-  "version": "0.8.2",
+  "version": "0.8.10",
   "scripts": {
     "prepare": "husky install",
     "pipeline": "node ./scripts/pipeline.js",
@@ -22,10 +22,9 @@
   },
   "packages": [
     "easy-css",
-    "easy-css-atomic",
-    "easy-css-utility",
-    "babel-plugin-easy-css",
     "babel-preset-easy-css",
-    "vite-plugin-easy-css"
+    "vite-plugin-easy-css",
+    "easy-css-atomic",
+    "easy-css-utility"
   ]
 }

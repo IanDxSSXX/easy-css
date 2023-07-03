@@ -4,7 +4,7 @@ import { css } from "@iandx/easy-css"
 describe("Basic css name generation", () => {
   it("Variable", () => {
     const ok = css`
-        color: red;
+      color: red;
     `
     assert.equal(ok, "ok")
   })

@@ -6,10 +6,9 @@ import syntaxDoExpressions from "@babel/plugin-syntax-do-expressions"
 import syntaxJsx from "@babel/plugin-syntax-jsx"
 // @ts-ignore
 import syntaxDecorators from "@babel/plugin-syntax-decorators"
-// @ts-ignore
-import easyCss, { type EasyCssOption } from "babel-plugin-easy-css"
+import easyCss, { type EasyCssOption } from "./plugin"
 
-export { EasyCssOption }
+export type { EasyCssOption }
 
 export default function(api: any, options: EasyCssOption = {}) {
   return {

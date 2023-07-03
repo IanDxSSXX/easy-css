@@ -1,6 +1,6 @@
 {
   "name": "babel-preset-easy-css",
-  "version": "0.8.2",
+  "version": "0.8.10",
   "files": [
     "dist"
   ],
@@ -13,6 +13,7 @@
   },
   "author": "IanDx",
   "devDependencies": {
+    "@types/node": "^18.11.17",
     "tsup": "^6.5.0"
   },
   "dependencies": {
@@ -20,6 +21,8 @@
     "@babel/plugin-syntax-do-expressions": "^7.22.5",
     "@babel/plugin-syntax-jsx": "^7.22.5",
     "@babel/plugin-syntax-typescript": "^7.20.0",
-    "babel-plugin-easy-css": "workspace:*"
+    "@babel/types": "^7.20.7",
+    "@iandx/easy-css": "workspace:*",
+    "minimatch": "^9.0.2"
   }
 }

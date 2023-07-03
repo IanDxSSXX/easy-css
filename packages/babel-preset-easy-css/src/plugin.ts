@@ -1,5 +1,5 @@
 import * as t from "@babel/types"
-import { css, easyStore, style } from "@iandx/easy-css"
+import { css, easyStore } from "@iandx/easy-css"
 import { minimatch } from "minimatch"
 
 type EasyStore = typeof easyStore
@@ -114,7 +114,7 @@ function toHyphenatedCase(str: string) {
 export interface EasyCssOption {
   /**
    * Files that will be included
-   * @default ** /*.{js,ts}
+   * @default ** /*.{js,jsx,ts,tsx}
    */
   files?: string | string[]
   /**
@@ -194,7 +194,7 @@ export default function(api: any, options: EasyCssOption = {}) {
   const {
     utilities,
     easyCssAlias = "@iandx/easy-css",
-    files: preFiles = "**/*.{js,ts}",
+    files: preFiles = "**/*.{js,jsx,ts,tsx}",
     excludeFiles: preExcludeFiles = "**/{dist,node_modules,lib}/*.{js,ts}"
   } = options
   const files = Array.isArray(preFiles) ? preFiles : [preFiles]
@@ -311,16 +311,13 @@ export default function(api: any, options: EasyCssOption = {}) {
         const allImports = node.specifiers
           .filter(n => t.isImportSpecifier(n) && t.isIdentifier(n.imported))
           .map((n: any) => n.imported.name)
-        if (!allImports.includes("css") && !allImports.includes("style")) return
+        if (!allImports.includes("css")) return
         if (node.source.value !== easyCssAlias) return
-        const easyGroup = []
-        if (allImports.includes("css")) easyGroup.push("css")
-        if (allImports.includes("style")) easyGroup.push("style")
-        this.easyCss = easyGroup
+        this.easyCss = true
       },
       TaggedTemplateExpression(path: any, state: any) {
         if (!this.enter) return
-        if (!this.easyCss.includes("css")) return
+        if (!this.easyCss) return
         const node = path.node as t.TaggedTemplateExpression
         if (!t.isIdentifier(node.tag) || node.tag.name !== "css") return
         let parentPath = path.parentPath
@@ -442,9 +439,9 @@ export default function(api: any, options: EasyCssOption = {}) {
       CallExpression(path: any, state: any) {
         if (!this.enter) return
         const node = path.node as t.CallExpression
-        if (this.easyCss.includes("style")) {
+        if (this.easyCss) {
           // style
-          if (!(t.isIdentifier(node.callee) && node.callee.name === "style")) return
+          if (!(t.isIdentifier(node.callee) && node.callee.name === "css")) return
           let parentPath = path.parentPath
           let parentNode = parentPath.node
           let params: t.Identifier[] | undefined
@@ -480,7 +477,7 @@ export default function(api: any, options: EasyCssOption = {}) {
               // --eg const a = css`color: red;`
               const styleObj = objectExpressionNodeToObject(node.arguments[0] as any)
               const oldEasyStore = getOldEasyStore()
-              const styleName = style.collect(styleObj as any, name)
+              const styleName = css.collect(styleObj as any, name)
               renewCurrEasyStore(hmrStore[state.filename], oldEasyStore)
               return { parsed: true, node: t.stringLiteral(styleName) }
             }
@@ -515,7 +512,7 @@ export default function(api: any, options: EasyCssOption = {}) {
                 ? easy.node
                 : t.callExpression(
                   t.memberExpression(
-                    t.identifier("style"),
+                    t.identifier("css"),
                     t.identifier("collect")
                   ),
                   [node.arguments[0], easy.node, pathNode]
@@ -532,7 +529,7 @@ export default function(api: any, options: EasyCssOption = {}) {
                 ? easy.node
                 : t.callExpression(
                   t.memberExpression(
-                    t.identifier("style"),
+                    t.identifier("css"),
                     t.identifier("collect")
                   ),
                   [node.arguments[0], easy.node, pathNode]
@@ -554,7 +551,7 @@ export default function(api: any, options: EasyCssOption = {}) {
                 ? easy.node
                 : t.callExpression(
                   t.memberExpression(
-                    t.identifier("style"),
+                    t.identifier("css"),
                     t.identifier("collect")
                   ),
                   [
@@ -575,7 +572,7 @@ export default function(api: any, options: EasyCssOption = {}) {
               ? easy.node
               : t.callExpression(
                 t.memberExpression(
-                  t.identifier("style"),
+                  t.identifier("css"),
                   t.identifier("collect")
                 ), [node.arguments[0], easy.node, pathNode]
               )

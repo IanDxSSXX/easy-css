@@ -1,13 +1,24 @@
 
-import { css, style, easyStore } from "@iandx/easy-css"
+import { css, easyStore } from "@iandx/easy-css"
 import * as AA from "@iandx/easy-css-atomic"
 import { ok } from "./sub"
 const tttt = css`
         color:${"red"};
       `
 console.log("ok")
-
-console.log(style({
+console.log(css`
+ok: true;
+`)
+console.log(css`
+ok: true;
+`)
+console.log(css`
+ok: true;
+`)
+console.log(css`
+ok: true;
+`)
+console.log(css({
   margin: "20px",
   ".shit": {
     padding: "100px"

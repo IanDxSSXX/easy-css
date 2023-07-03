@@ -3,14 +3,14 @@ import { parseSub } from "./subParser"
 import { type EasyStyleWithSub, type EasyStyle } from "./types"
 import { generateUUIDFromString, minify, rand } from "./utils"
 
-export function css(strings: TemplateStringsArray, ...values: any[]) {
+export function cssStrFunc(strings: TemplateStringsArray, ...values: any[]) {
   const cssString = strings.reduce((result, string, i) => {
     return result + string + (values[i] || "")
   }, "")
-  return css.collect(cssString)
+  return cssStrFunc.collect(cssString)
 }
 
-css.collect = (cssString: string, name?: string, filePath?: string) => {
+cssStrFunc.collect = (cssString: string, name?: string, filePath?: string) => {
   const easyStyle = parseToEasyStyle(cssString)
   const cssId = generateUUIDFromString(easyStyle.cssStr)
   const contentSame = judge(easyStyle, cssId)
@@ -100,11 +100,10 @@ function handleMainStyle(cssId: string, cssString: string, name: string | undefi
   else if (easyStore.conflictNameStore[name] !== undefined) {
     easyStore.conflictNameStore[name]++
     name = `${name}${easyStore.conflictNameStore[name] - 1}`
-    easyStore.nameHashStore[cssId] = name
   } else {
     easyStore.conflictNameStore[name] = 1
-    easyStore.nameHashStore[cssId] = name
   }
+  easyStore.nameHashStore[cssId] = name
 
   injectStyle(`.${name}{${cssString}}`, name, filePath)
   return name

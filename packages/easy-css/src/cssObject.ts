@@ -1,7 +1,8 @@
 import { type StyleType } from "./types"
-import { css } from "./css"
-export function style(styles: StyleType) {
-  return style.collect(styles)
+import { cssStrFunc } from "./cssStr"
+
+export function cssObjFunc(styles: StyleType) {
+  return cssObjFunc.collect(styles)
 }
 
 function parseStyle(styles: StyleType) {
@@ -18,8 +19,7 @@ function parseStyle(styles: StyleType) {
   return styleStr
 }
 
-style.collect = (style: StyleType, name?: string, filePath?: string) => {
+cssObjFunc.collect = (style: StyleType, name?: string, filePath?: string) => {
   const styleStr = parseStyle(style)
-  console.log(styleStr)
-  return css.collect(styleStr, name, filePath)
+  return cssStrFunc.collect(styleStr, name, filePath)
 }
