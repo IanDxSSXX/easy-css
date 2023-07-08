@@ -262,7 +262,6 @@ const myStyle_ = (color) => css`
 `) // ~> `my-style-${color}`
 ```
 # Object styles
-css也默认支持object style
-
+🧑🏼‍💻 DOC WIP
 # Static pre-parsing
-为了避免runtime的性能损耗，easy-css默认支持在build time识别静态的css类型
+🧑🏼‍💻 DOC WIP

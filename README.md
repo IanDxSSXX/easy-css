@@ -54,7 +54,6 @@ export default defineConfig({
 npm install -D babel-preset-easy-css
 ```
 ```json
-// ~> .babelrc
 {
   presets: ["easy-css"]
 }
