@@ -262,6 +262,6 @@ const myStyle_ = (color) => css`
 `) // ~> `my-style-${color}`
 ```
 # Object styles
-🧑🏼‍💻 DOC WIP
+🧑🏼‍💻 DOC WIP 
 # Static pre-parsing
 🧑🏼‍💻 DOC WIP
