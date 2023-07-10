@@ -6,6 +6,8 @@ The syntax of Easy-css is almost identical to that of other CSS in JS frameworks
 * [Global and scoped names](#global-and-scoped-names)
 * [Name conflicts handling](#name-conflicts-handling)
 * [Static pre-parsing](#static-pre-parsing)
+* [Object interpolations](#object-interpolations)
+* [Styled component](#styled-component)
 
 # Syntax
 ```js
@@ -261,7 +263,127 @@ const myStyle_ = (color) => css`
   padding: ${color};
 `) // ~> `my-style-${color}`
 ```
-# Object styles
-🧑🏼‍💻 DOC WIP 
+# Object interpolations
+Object styles can be interpolated as well, and they are transformed into a CSS string and then added to the stylesheet. It has the same naming strategy with tag-template styles.
+
+```js
+const style = css({
+  color: red,
+  marginRight: "50px"
+})
+```
+Generated CSS:
+```css
+.style {
+  color: red;
+  margin-right: 50px;
+}
+```
 # Static pre-parsing
-🧑🏼‍💻 DOC WIP
+The purpose of easy css is to allow you to use CSS in JS in the simplest way possible, without having to be aware of whether it's build time or runtime. It automatically adds CSS that can be statically analyzed to the stylesheet at build time, while also allowing for dynamic style additions. This maximizes performance while also providing the flexibility to add styles dynamically.
+
+Here are some examples of using easy css to add styles at build time and runtime:
+## Build time
+```js
+// ~> src/index.ts
+const style = css`
+  color: red;
+`
+// in build time it will be parsed to
+const style = "style"
+```
+Then append style to html in build time:
+```html
+<style data-tag="🎨easy-css" data-key="✨pre-parsed" data-path="src/index.ts">
+  .style {
+    color: red;
+  }
+</style>
+```
+## Runtime
+```js
+// ~> src/index.ts
+const color = "blue"
+const style = css`
+  color: ${color};
+`
+// in build time it will be parsed to
+const style = css.collect(`
+  color: ${color};
+`, "style", "src/index.ts") // get style path in dev mode
+```
+Then append style to html in runtime:
+```html
+<style data-tag="🎨easy-css" data-key="style" data-path="src/index.ts">
+  .style {
+    color: blue;
+  }
+</style>
+```
+
+# Styled component
+In easy css, we DO NOT provide ready-made styled components because there are just too many different frameworks out there. However, easy css does provide a pre-parse mechanism for `styled.xxx` or `styled(xxx)`, making it very easy to write your own styled components.
+
+Here are some rules:
+```js
+const style = styled.div`
+  color: red;
+`
+// in build time it will be parsed to
+const style = styled.div("style")
+```
+```js
+const style = styled.div`
+  color: ${color};
+`
+// in build time it will be parsed to
+const style = styled.div(`
+  color: ${color};
+`, "style", "dev/path")
+```
+```js
+const style = styled.div({
+  color: "red"
+})
+// in build time it will be parsed to
+const style = styled.div("style")
+```
+```js
+const style = styled.div({
+  color
+})
+// in build time it will be parsed to
+const style = styled.div({ 
+  color 
+}, "style", "dev/path")
+```
+It's worth noting that all the styles that using `styled.xxx` or `styled(xxx)` is default a scoped style(meaning has a random string as it appendix)!
+
+
+For example, let's write a simple React styled-component:
+```jsx
+import { type StyleType, css } from "@iandx/easy-css"
+
+function styled<T>(Tag) {
+  return(cssStringOrName, name?, path?) => {
+    if (name) {
+      // meaning it's not pre-parsed in build time, so you should manually collect it
+      css.collect(cssStringOrName, name, path)
+    }
+    return props => (
+      <Tag {...props} className={name ?? cssStringOrName}/>
+    )
+  }
+}
+```
+Then you can use it as:
+```ts
+const Div = styled("div")`
+  color: red;
+`
+const MyCompWithClass = styled(MyComp)`
+  font-size: 20px;
+`
+```
+🌟 Contributing: If you have built a library of styled-components using easy CSS, you are welcome to add it to the `packages/styled-components` directory and submit a Pull Request.
+
