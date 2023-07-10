@@ -1,16 +1,17 @@
-EN | [ZH](./zh/USAGE.md)
 
-# Usage
-The syntax of Easy-css is almost identical to that of other CSS in JS frameworks. Therefore, let us quickly review them before we dive into one of the highlights of Easy-css - global and scoped CSS classes.
+[EN](../USAGE.md) | ZH
 
-* [Syntax](#syntax)
-* [Global and scoped names](#global-and-scoped-names)
-* [Name conflicts handling](#name-conflicts-handling)
-* [Static pre-parsing](#static-pre-parsing)
-* [Object interpolations](#object-interpolations)
+# 使用
+Easy-css 的语法几乎与其他 CSS in JS 框架相同。因此，在我们深入 Easy-css 的一大亮点——全局和作用域 CSS 类之前，让我们快速回顾一下它们。
+
+* [语法](#语法)
+* [全局和作用域名称](#全局和作用域名称)
+* [命名冲突](#命名冲突)
+* [静态预解析](#静态预解析)
+* [对象插值](#对象插值)
 * [Styled component](#styled-component)
 
-# Syntax
+# 语法
 ```js
 import { css } from "@iandx/easy-css"
 
@@ -18,7 +19,7 @@ const style = css`
   color: red;
 `
 ```
-Generated CSS:
+生成的CSS:
 ```css
 .style {
   color: red;
@@ -39,7 +40,7 @@ const style = css`
   }
 `
 ```
-Generated CSS:
+生成的CSS:
 ```css
 .style {
   color: red;
@@ -63,7 +64,7 @@ const style = css`
   }
 `
 ```
-Generated CSS:
+生成的CSS:
 ```css
 .style {
   color: red;
@@ -89,7 +90,7 @@ const style = css`
   }
 `
 ```
-Generated CSS:
+生成的CSS:
 ```css
 .style {
   color: red;
@@ -104,20 +105,20 @@ Generated CSS:
   }
 }
 ```
-# Global and scoped names
-## Global named css from a variable
+# 全局和作用域名称
+## 从变量中创建全局命名 CSS
 ```js
 const myStyle = css`
   color: red;
 `
 ```
-Generated CSS:
+生成的CSS:
 ```css
 .my-style {
   color: red;
 }
 ```
-## Global named css from an object
+## 从对象中创建全局命名 CSS
 ```js
 const myColorfulStyle = {
   yellow: css`
@@ -131,7 +132,7 @@ const myColorfulStyle = {
   `
 }
 ```
-Generated CSS:
+生成的CSS:
 ```css
 .yellow {
   background-color:yellow;
@@ -143,7 +144,7 @@ Generated CSS:
   background-color:blue;
 }
 ```
-## Global named css from a class member
+## 从类成员中创建全局命名 CSS
 ```js
 class MyClass {
   myClassStyle = css`
@@ -152,15 +153,15 @@ class MyClass {
 }
 new MyClass()
 ```
-Generated CSS:
+生成的CSS:
 ```css
 .my-class-style {
   width:100px;
 }
 ```
 
-## Global named css with parameters
-Works only with an arrow function
+## 带有参数的全局命名 CSS
+这只适用于箭头函数。
 ```js
 const myStyle = (myParam1, param2) => css`
   color: ${myParam1};
@@ -170,7 +171,7 @@ const myStyle = (myParam1, param2) => css`
 myStyle("red", "16")
 myStyle("blue", "20")
 ```
-Generated CSS:
+生成的CSS:
 ```css
 .my-style-red-16 {
   color: red;
@@ -181,15 +182,15 @@ Generated CSS:
   font-size: 120px;
 }
 ```
-## Scoped named css
-Declare a named css with a random string at the end with any variable that ends with a "$" as scoped named css.
+## 作用域命名 CSS
+如果以任何以 "$" 结尾的变量声明带有随机字符串的命名 CSS，则它将被视为作用域命名 CSS。
 ```js
 const myStyle$ = css`
   color: red;
   font-size: 16px;
 `
 ```
-Generated CSS:
+生成的CSS:
 ```css
 .my-style-b1i9aj {
   color: red;
@@ -197,24 +198,25 @@ Generated CSS:
 }
 ```
 
-## Scoped css
-If called easy-css in a situation other than those mentioned above, the class name will be a random string(because there's not any name that can be used as a className). 
+## 作用域CSS
+如果在上述情况之外的情况下调用 easy-css，则类名将是一个随机字符串（因为没有任何名称可以用作类名）。
 ```js
 css`
   cursor: pointer;
 `
 ```
-Generated CSS:
+生成的CSS:
 ```css
 .easy-css-aje31h {
   cursor: pointer;
 }
 ```
 
-# Name conflicts handling
-Global CSS names may lead to naming conflicts. In Easy-css, we reuse the name for CSS with identical content. Let's illustrate this issue through a few examples.
+# 命名冲突
+全局 CSS 名称可能会导致命名冲突。在 Easy-css 中，我们会为内容相同的 CSS 重用名称。让我们通过一些例子来说明这个问题。
 
-## When two CSS rules have the same content, the rest ones will inherit the name of the first declaration in Easy-css.
+
+## 当两个 CSS 规则具有相同的内容时，在 Easy-css 中，其余的规则将继承第一个声明的名称。
 ```js
 const myStyle = css`
   display: flex;
@@ -226,14 +228,14 @@ css`
   cursor: pointer;
 ` // ~> "myStyle"
 ```
-Generated CSS:
+生成的CSS:
 ```css
 .my-style {
   display: flex;
   cursor: pointer;
 }
 ```
-## Even if the order of the properties is different, they'll still have the same names.
+## 即使属性的顺序不同，它们仍将具有相同的名称。
 ```js
 const myStyle = css`
   cursor: pointer;
@@ -245,7 +247,7 @@ css`
   cursor: pointer;
 ` // ~> "myStyle"
 ```
-Generated CSS:
+生成的CSS:
 ```css
 .my-style {
   display: flex;
@@ -253,7 +255,8 @@ Generated CSS:
 }
 ```
 ## Underline trimming
-To avoid variable declaration conflict, you can add underline as prefix or appendix, and easy-css will automatically trim them.
+为避免变量声明冲突，你可以在前缀或后缀中添加下划线，并且 easy-css 将自动删除它们。
+
 ```js
 const myStyle = css`
   padding: 20px;
@@ -264,8 +267,8 @@ const myStyle_ = (color) => css`
   padding: ${color};
 `) // ~> `my-style-${color}`
 ```
-# Object interpolations
-Object styles can be interpolated as well, and they are transformed into a CSS string and then added to the stylesheet. It has the same naming strategy with tag-template styles.
+# 对象插值
+对象样式也可以进行插值，它们会被转换为 CSS 字符串，然后添加到样式表中。它与标签模板样式具有相同的命名策略。
 
 ```js
 const style = css({
@@ -273,17 +276,17 @@ const style = css({
   marginRight: "50px"
 })
 ```
-Generated CSS:
+生成的CSS:
 ```css
 .style {
   color: red;
   margin-right: 50px;
 }
 ```
-# Static pre-parsing
-The purpose of easy css is to allow you to use CSS in JS in the simplest way possible, without having to be aware of whether it's build time or runtime. It automatically adds CSS that can be statically analyzed to the stylesheet at build time, while also allowing for dynamic style additions. This maximizes performance while also providing the flexibility to add styles dynamically.
+# 静态预解析
+Easy css 的目的是让你以最简单的方式使用 CSS in JS，而无需关注它是构建时还是运行时。它会自动在构建时将可以静态分析的 CSS 添加到样式表中，同时允许动态添加样式。这样可以最大化性能，同时提供动态添加样式的灵活性。
 
-Here are some examples of using easy css to add styles at build time and runtime:
+以下是使用 easy css 在构建时和运行时添加样式的一些示例：
 ## Build time
 ```js
 // ~> src/index.ts
@@ -293,7 +296,7 @@ const style = css`
 // in build time it will be parsed to
 const style = "style"
 ```
-Then append style to html in build time:
+然后在运行时将样式附加到 HTML：
 ```html
 <style data-tag="🎨easy-css" data-key="✨pre-parsed" data-path="src/index.ts">
   .style {
@@ -313,7 +316,7 @@ const style = css.collect(`
   color: ${color};
 `, "style", "src/index.ts") // get style path in dev mode
 ```
-Then append style to html in runtime:
+然后在运行时将样式附加到 HTML：
 ```html
 <style data-tag="🎨easy-css" data-key="style" data-path="src/index.ts">
   .style {
@@ -323,7 +326,7 @@ Then append style to html in runtime:
 ```
 
 # Styled component
-In easy css, we DO NOT provide ready-made styled components because there are just too many different frameworks out there. However, easy css does provide a pre-parse mechanism for `styled.xxx` or `styled(xxx)`, making it very easy to write your own styled components.
+在 easy css 中，我们不会提供现成的 styled components，因为市面上有太多不同的框架。然而，easy css 提供了 `styled.xxx` 或 `styled(xxx)` 的预解析机制，使编写自己的 styled components 非常容易。
 
 Here are some rules:
 ```js
@@ -358,10 +361,9 @@ const style = styled.div({
   color 
 }, "style", "dev/path")
 ```
-It's worth noting that all the styles that using `styled.xxx` or `styled(xxx)` is default a scoped style(meaning has a random string as it appendix)!
+值得注意的是，所有使用 `styled.xxx` 或 `styled(xxx)` 的样式默认都是作用域样式（也就是说，有一个随机字符串作为其后缀！）。
 
-
-For example, let's write a simple React styled-component:
+例如，让我们编写一个简单的 React styled-component：
 ```jsx
 import { type StyleType, css } from "@iandx/easy-css"
 
@@ -377,7 +379,7 @@ function styled<T>(Tag) {
   }
 }
 ```
-Then you can use it as:
+然后你可以像这样使用它：
 ```ts
 const Div = styled("div")`
   color: red;
@@ -386,5 +388,5 @@ const MyCompWithClass = styled(MyComp)`
   font-size: 20px;
 `
 ```
-🌟 Contributing: If you have built a library of styled-components using easy CSS, you are welcome to add it to the `packages/styled-components` directory and submit a Pull Request.
+🌟 如果你已经使用 easy CSS 构建了一个 styled-components 的库，欢迎将其添加到 packages/styled-components 目录并提交 Pull Request。
 

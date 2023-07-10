@@ -1,23 +1,22 @@
-EN | [ZH](./zh/ATOMIC.md)
-# Introduction
+[EN](../Atomic.md) | ZH
 
-Atomic CSS and utility-first frameworks are rapidly rising in popularity as a simple yet powerful approach to styling components.
+# 介绍
+原子 CSS 和工具优先的框架作为一种简单而强大的组件样式化方法正在迅速流行。
 
-Atomic CSS involves defining styles for short "atom" classes that target a single style declaration, such as `.text-red-500()` for red text or `.truncate()` for truncating text. You compose elements by stacking these classes  allowing extremely modular and reusable styles.
+原子 CSS 涉及为短小的“原子”类定义样式，它们针对单个样式声明，例如 `.text-red-500()` 表示红色文本或 `.truncate()` 表示截断文本。你可以通过叠加这些类来组合元素，从而实现极其模块化和可重用的样式。
 
-Atomic CSS offers many benefits over traditional CSS:
+相较于传统的 CSS，原子 CSS 提供了许多优点：
 
-* Scalability: Easily build complex designs through composition of atomic styles.
-* Simple: Class names map directly to CSS declarations for an intuitive API.
-* Flexibility: Only include the exact styles your project needs.
+* 可扩展性：通过原子样式的组合轻松构建复杂的设计。
+* 简单：类名直接映射到 CSS 声明，具有直观的 API。
+* 灵活性：只包含项目需要的准确样式。
 
-Many developers are now adopting atomic-first frameworks that implement this concept at scale like tailwindcss.
+许多开发者现在采用实现这个概念的原子优先框架，例如 tailwindcss。
 
-Therefore, Easy CSS provides a very convenient way to use atomic and utility classes by using JavaScript syntax for better autocompletion and using JSDoc for better hints. Additionally, through the use of plugins, it becomes very easy to customize utility classes.
+因此，Easy CSS 提供了一种非常方便的方式来使用原子和工具class，它使用 JavaScript 语法实现更好的自动完成，并使用 JSDoc 实现更好的提示。此外，通过使用插件，非常容易自定义工具class。
 
-# Atomic
-The library `@iandx/easy-css-atomic` contains all CSS stylesheets and their corresponding values can be obtained through function calls. The first parameter of the function call is the value.
-
+# 原子class
+库 @iandx/easy-css-atomic 包含所有 CSS 样式表，它们对应的值可以通过函数调用获得。函数调用的第一个参数是该值。
 ```jsx
 import { marginTop } from "@iandx/easy-css-atomic"
 
@@ -25,12 +24,12 @@ function MyComp() {
   return <div className={marginTop("20px")} />
 }
 ```
-And you can display the specific CSS description of this style by hovering over it:
-![atomic](./imgs/atomic0.png)
+你可以在悬停在该样式上时显示该样式的具体 CSS 描述：
+![atomic](../imgs/atomic0.png)
 
+# 工具class
+`@iandx/easy-css-utility`库包含了所有来自[tailwindcss](https://tailwindcss.com/)的工具class。
 
-# Utility
-The library `@iandx/easy-css-utility` contains all utility classes from [tailwindcss](https://tailwindcss.com/).
 
 ```jsx
 import { textRed100 } from "@iandx/easy-css-utility"
@@ -39,11 +38,11 @@ function MyComp() {
   return <div className={textRed100()} />
 }
 ```
-And you can also hover over it to see its class definition:
-![atomic](./imgs/atomic1.png)
+你也可以悬停在它上面以查看它的class定义：
+![atomic](../imgs/atomic1.png)
 
-# Multiple classes
-You can integrate easy-css with classname strings utilities like [clsx](https://github.com/lukeed/clsx)
+# 多个class
+你可以将 easy-css 与类名字符串工具（如 [clsx](https://github.com/lukeed/clsx)）集成。
 ```jsx
 import { marginTop, paddingRight } from "@iandx/easy-css-atomic"
 import { textRed100, fontSemibold, text4xl } from "@iandx/easy-css-utility"
@@ -63,7 +62,7 @@ function MyComp() {
   )
 }
 ```
-Will result in styles:
+会生成样式：
 ```html
 <style data-tag="🎨easy-css" data-key="text-red100">.text-red100{color:rgb(254 226 226);}</style>
 <style data-tag="🎨easy-css" data-key="margin-top-20px">.margin-top-20px{margin-top:20px;}</style>
@@ -72,8 +71,8 @@ Will result in styles:
 <style data-tag="🎨easy-css" data-key="text4xl">.text4xl{font-size:2.25rem;line-height:2.5rem;}</style>
 ```
 
-# Pre-parsing
-You can parse these atomic classes into pure strings of classnames by setting this at config(babel or vite):
+# 预解析
+你可以通过在配置文件（如 babel 或 vite）中设置以下选项，将这些原子类解析为纯类名字符串：
 
 ```js
 import atomic from "@iandx/easy-css-atomic"
@@ -89,7 +88,7 @@ export default defineConfig({
   })],
 })
 ```
-Then at build time, the code above will be parsed into:
+然后在构建时，上述代码将被解析为：
 ```js
 function MyComp() {
   return (
@@ -105,10 +104,10 @@ function MyComp() {
   )
 }
 ```
-This will save a lot of runtime!
+这会省去很多的运行时！
 
-## Safe name
-Use safe name to resolve potential pre-parsing naming conflicts:
+## 安全名
+使用安全名称以解决可能的预解析命名冲突：
 
 ```js
 import atomic from "@iandx/easy-css-atomic"
@@ -126,7 +125,7 @@ export default defineConfig({
   })],
 })
 ```
-Then in build time, this:
+然后在构建时，这
 ```js
 const myClassNames = clsx(
     A.marginTop("20px"),
@@ -136,7 +135,7 @@ const myClassNames = clsx(
     text4xl()
 )
 ```
-will be parsed into:
+会被解析成：
 ```js
 const myClassNames = clsx(
     "margin-top-20px",
@@ -146,10 +145,10 @@ const myClassNames = clsx(
     text4xl()  // won't be pre-parsed
 )
 ```
-# Custom utilities with pre-parsing
-You can easily build your own class utility package and utilize easy-css's build time pre-parsing abilities.
+# 使用预解析的自定义工具class
+你可以轻松构建自己的类工具程序包，并利用 easy-css 的构建时预解析能力。
 
-1. Build your utility package
+1. 创建自定义class包
 ```js
 // ~> ./myUtility
 import { css } from "@iandx/easy-css"
@@ -166,8 +165,8 @@ export const flexWrapper = direction => css`
   justify-content: center;
 `
 ```
-2. Pre-parsing
-In config
+2. 预解析
+在配置中
 ```js
 import * as myUtility from "./myUtility"
 
@@ -179,7 +178,7 @@ export default defineConfig({
   })],
 })
 ```
-3. Happily coding
+3. 快乐coding
 ```js
 import { flexWrapper, largeRed } from "./myUtility"
 
@@ -188,7 +187,7 @@ const myClassNames = clsx(
     largeRed()
 )
 ```
-be pre-parsed to
+被预解析成
 ```js
 import { flexWrapper, largeRed } from "./myUtility"
 

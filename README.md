@@ -1,4 +1,6 @@
 # Easy CSS
+EN | [ZH](./docs/zh/README.md)
+
 [![@iandx/easy-css](https://badgen.net/npm/v/@iandx/easy-css?label=@iandx/easy-css)](https://www.npmjs.com/package/@iandx/easy-css)
 [![babel-plugin-easy-css](https://badgen.net/npm/v/babel-plugin-easy-css?label=babel-plugin-easy-css)](https://www.npmjs.com/package/https://badgen.net/npm/v/babel-plugin-easy-css?label=babel-plugin-easy-css)
 [![vite-plugin-easy-css](https://badgen.net/npm/v/vite-plugin-easy-css?label=vite-plugin-easy-css)](https://www.npmjs.com/package/https://badgen.net/npm/v/vite-plugin-easy-css?label=vite-plugin-easy-css)
@@ -28,7 +30,7 @@ Easy CSS resolves these issues by:
 1. Easy CSS combines static and dynamic capabilities to identify classes that can be inferred statically and parse them at build time. Additionally, it provides powerful dynamic capabilities to add types at runtime.
 2. We define a className by recognizing variable names, allowing your declared variable names to be either global or scoped.
 3. Easy CSS provides a pre-parsed atomic library based on static CSS-in-JS libraries, making it easy to use atomic CSS in Easy CSS.
-4. Atomic CSS in Easy CSS is in the form of a function call, so you can define any parameters you need, such as margin("10px").
+4. Atomic CSS in Easy CSS is in the form of a function call, so you can define any parameters you need, such as `margin("10px")`.
 5.  Easy CSS supports plug-ins for custom utility component libraries. It also provides two native libraries: Atomic - all native styles as atomic classes, and Utility - all utility classes supported by Tailwind.
 
 # Installation
@@ -55,7 +57,7 @@ npm install -D babel-preset-easy-css
 ```
 ```json
 {
-  presets: ["easy-css"]
+  "presets": ["easy-css"]
 }
 ```
 
