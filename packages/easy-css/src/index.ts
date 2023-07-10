@@ -2,7 +2,7 @@ import { cssObjFunc } from "./cssObject"
 import { cssStrFunc } from "./cssStr"
 import { type StyleType } from "./types"
 export { easyStore, geneEasyStyle, preParseEasyStore } from "./store"
-
+export { type StyleType }
 export function css(strings: StyleType | TemplateStringsArray, ...values: any[]) {
   if (Array.isArray(strings)) {
     return cssStrFunc(strings as any, ...values)

@@ -1,6 +1,6 @@
 {
   "name": "@iandx/easy-css-monorepo",
-  "version": "0.8.10",
+  "version": "0.9.3",
   "scripts": {
     "prepare": "husky install",
     "pipeline": "node ./scripts/pipeline.js",

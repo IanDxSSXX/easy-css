@@ -5,6 +5,10 @@ export function cssObjFunc(styles: StyleType) {
   return cssObjFunc.collect(styles)
 }
 
+function camelToHyphen(str: string) {
+  return str.replace(/[A-Z]/g, (match) => "-" + match.toLowerCase())
+}
+
 function parseStyle(styles: StyleType) {
   let styleStr = ""
   for (const [key, value] of Object.entries(styles)) {
@@ -12,7 +16,7 @@ function parseStyle(styles: StyleType) {
       styleStr += `${key}{${parseStyle(value as any)}}`
       continue
     }
-    styleStr += `${key}:${value};`
+    styleStr += `${camelToHyphen(key)}:${value};`
     continue
   }
 

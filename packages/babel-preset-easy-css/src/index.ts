@@ -6,7 +6,8 @@ import syntaxDoExpressions from "@babel/plugin-syntax-do-expressions"
 import syntaxJsx from "@babel/plugin-syntax-jsx"
 // @ts-ignore
 import syntaxDecorators from "@babel/plugin-syntax-decorators"
-import easyCss, { type EasyCssOption } from "./plugin"
+import easyCss from "./plugin"
+import { type EasyCssOption } from "./types"
 
 export type { EasyCssOption }
 

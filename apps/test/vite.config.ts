@@ -10,11 +10,9 @@ export default defineConfig({
   sourceMap: true,
   plugins: [easyCss({
     utilities: [{
-      easyFuncMap: atomic,
-      safeName: "AA"
+      easyFuncMap: atomic
     }, {
-      easyFuncMap: utility,
-      safeName: "BB"
+      easyFuncMap: utility
     }]
   })]
 })

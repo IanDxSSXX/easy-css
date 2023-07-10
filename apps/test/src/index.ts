@@ -1,31 +1,43 @@
 
 import { css, easyStore } from "@iandx/easy-css"
-import * as AA from "@iandx/easy-css-atomic"
-import { ok } from "./sub"
-const tttt = css`
-        color:${"red"};
-      `
+import { marginTop } from "@iandx/easy-css-atomic"
+marginTop("20px")
+// import { ok } from "./sub"
+// const tttt = css`
+//         color:${"red"};
+//       `
 console.log("ok")
-console.log(css`
-ok: true;
-`)
-console.log(css`
-ok: true;
-`)
-console.log(css`
-ok: true;
-`)
-console.log(css`
-ok: true;
-`)
-console.log(css({
-  margin: "20px",
-  ".shit": {
-    padding: "100px"
-  }
-}))
+// console.log(css`
+// ok: true;
+// `)
+// console.log(css`
+// ok: true;
+// `)
+// console.log(css`
+// ok: true;
+// `)
+// console.log(css`
+// ok: true;
+// `)
+// console.log(css({
+//   marginRight: "20px",
+//   ".shit": {
+//     padding: "100px"
+//   }
+// }))
+// const styled = () => { return () => {}}
+// styled.fuck = (a) => {
+//   console.log(a)
+// }
 
-ok()
+// const j = "Jjjjj"
+// const fuck = styled.fuck`jjj: ${j};`
+// const jfaj = styled.fuck({
+//   margin: `ok${j}`
+// })
+// const fff = styled("jj")`not: hh;`
+// console.log(fuck, "JJ")
+// ok()
 // import * as BB from "@iandx/easy-css-utility"
 // import { css as hhCss } from "@emotion/css"
 
@@ -111,30 +123,32 @@ ok()
 // }
 // console.timeEnd("0")
 
-const t = AA.margin("20xx")
-const world = css`
-      color: green;
-    `
-const object = {
-  world: css`
-        color: white;
-      `
-}
-const jj = css`
-> * + *{
-  margin-left: 5px;
+console.log(css`jj: red;`)
+console.log(css`jj: ${"blue"};`)
+// const t = AA.margin("20xx")
+// const world = css`
+//       color: green;
+//     `
+// const object = {
+//   world: css`
+//         color: white;
+//       `
+// }
+// const jj = css`
+// > * + *{
+//   margin-left: 5px;
 
-}
-`
-document.getElementById("app")!.innerHTML = `
-<div class="" viewBox="0 0 24 24">
-<div  viewBox="0 0 24 24">
-  <!-- ... -->
-</div></div>
-<div class="${jj}">
-<div>a</div>
-<div>b</div>
-<div>c</div>
-</div>
-    `
-AA.margin("300px")
+// }
+// `
+// document.getElementById("app")!.innerHTML = `
+// <div class="" viewBox="0 0 24 24">
+// <div  viewBox="0 0 24 24">
+//   <!-- ... -->
+// </div></div>
+// <div class="${jj}">
+// <div>a</div>
+// <div>b</div>
+// <div>c</div>
+// </div>
+//     `
+// AA.margin("300px")

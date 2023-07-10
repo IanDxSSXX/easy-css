@@ -1,194 +1,10 @@
 import * as t from "@babel/types"
 import { css, easyStore } from "@iandx/easy-css"
 import { minimatch } from "minimatch"
-
-type EasyStore = typeof easyStore
-
-function abandonEasyStore(oldEasyStore: EasyStore) {
-  easyStore.styleList = easyStore.styleList.filter(s => !oldEasyStore.styleList.includes(s))
-  easyStore.conflictNameStore = Object.fromEntries(
-    Object.entries(easyStore.conflictNameStore).filter(([key]) => (
-      !Object.keys(oldEasyStore.conflictNameStore).includes(key))
-    )
-  )
-  easyStore.nameHashStore = Object.fromEntries(
-    Object.entries(easyStore.nameHashStore).filter(([key]) => (
-      !Object.keys(oldEasyStore.nameHashStore).includes(key))
-    )
-  )
-  easyStore.styleHashStore = Object.fromEntries(
-    Object.entries(easyStore.styleHashStore).filter(([key]) => (
-      !Object.keys(oldEasyStore.styleHashStore).includes(key))
-    )
-  )
-}
-
-function diffEasyStore(oldEasyStore: EasyStore): EasyStore {
-  return {
-    styleList: easyStore.styleList.filter(s => !oldEasyStore.styleList.includes(s)),
-    conflictNameStore: Object.fromEntries(
-      Object.entries(easyStore.conflictNameStore).filter(([key]) => (
-        oldEasyStore.conflictNameStore[key] === undefined
-      ))
-    ),
-    nameHashStore: Object.fromEntries(
-      Object.entries(easyStore.nameHashStore).filter(([key]) => (
-        oldEasyStore.nameHashStore[key] === undefined
-      ))
-    ),
-    styleHashStore: Object.fromEntries(
-      Object.entries(easyStore.styleHashStore).filter(([key]) => (
-        oldEasyStore.styleHashStore[key] === undefined
-      ))
-    )
-  }
-}
-
-function getRelativePath(targetFile: string) {
-  const currentFolder = process.cwd()
-  const currentFolderArr = currentFolder.split("/")
-  const targetFileArr = targetFile.split("/")
-  let i = 0
-  while (currentFolderArr[i] === targetFileArr[i]) {
-    i++
-  }
-  let relativePath = ""
-  for (let j = i; j < currentFolderArr.length - 1; j++) {
-    relativePath += "../"
-  }
-  for (let j = i; j < targetFileArr.length; j++) {
-    relativePath += targetFileArr[j] + "/"
-  }
-  relativePath = relativePath.slice(0, -1)
-
-  return relativePath
-}
-
-function trimUnderline(str: string) {
-  return str.replace(/^_+|_+$/g, "")
-}
-
-function objectExpressionNodeToObject(node: t.ObjectExpression) {
-  const object: Record<string, string | number | boolean | object> = {}
-  for (const property of node.properties) {
-    if (!t.isObjectProperty(property)) return
-    const { key: keyNode, value: valueNode } = property
-    let key: string | undefined
-    if (t.isIdentifier(keyNode)) {
-      key = keyNode.name
-    } else if (t.isStringLiteral(keyNode)) {
-      key = keyNode.value
-    } else {
-      return
-    }
-    let value: string | number | boolean | object | undefined
-    if (t.isStringLiteral(valueNode)) {
-      value = valueNode.value
-    } else if (t.isTemplateLiteral(valueNode) && valueNode.quasis.length === 1) {
-      value = valueNode.quasis[0].value.raw
-    } else if (t.isNumericLiteral(valueNode)) {
-      value = valueNode.value
-    } else if (t.isBooleanLiteral(valueNode)) {
-      value = valueNode.value
-    } else if (t.isObjectExpression(valueNode)) {
-      value = objectExpressionNodeToObject(valueNode)
-      if (!value) return
-    } else {
-      return
-    }
-    object[key] = value
-  }
-
-  return object
-}
-
-function toHyphenatedCase(str: string) {
-  return trimUnderline(str)
-    .replace(/([a-z])([A-Z])/g, "$1-$2")
-    .replace(/[^a-zA-Z0-9]/g, "-")
-    .replace(/-$/, "")
-    .replace(/--+/, "-")
-    .toLowerCase()
-}
-
-export interface EasyCssOption {
-  /**
-   * Files that will be included
-   * @default ** /*.{js,jsx,ts,tsx}
-   */
-  files?: string | string[]
-  /**
-   * Files that will be excludes
-   * @default ** /{dist,node_modules,lib}/*.{js,ts}
-   */
-  excludeFiles?: string | string[]
-  /**
-   * # Pre-parse utilities
-   * ---
-   * ## e.g.0
-   * in config
-   * ```js
-   * const utilities = [{
-   *  easyFuncMap: {
-   *    margin: value => css`margin: ${value}px`
-   *  }
-   * }]
-   * ```
-   * in code
-   * ```js
-   * const hi = margin(20)
-   * // will be pre-parsed as
-   * const hi = "margin-20"
-   *```
-   * ---
-   * ## e.g.1
-   * using safeName in config
-   * ```js
-   * const utilities = [{
-   *  easyFuncMap: {
-   *    margin: value => css`margin: ${value}px`
-   *  },
-   *  safeName: "Style"
-   * }]
-   * ```
-   * in code
-   * ```js
-   * const hi = margin(20)
-   * // won't be pre-parsed because of the safe name
-   * const hello = Style.margin(20)
-   * // will be pre-parsed
-   * const hello = "margin-20"
-   * ```
-   * ---
-   * # Off-the-shelf pre-parsing
-   * We offer two off-the-shelf packages:
-   * * \@iandx/easy-css-atomic
-   *   * contains all style like margin, display, ...
-   * * \@iandx/easy-css-utility
-   *   * provide some handy utilities like textRed500, absolute, ...
-   *
-   * in config
-   * ```js
-   * import atomic from "@iandx/easy-css-atomic"
-   * import atomic from "@iandx/easy-css-utility"
-   * const utilities = [{
-   *  easyFuncMap: atomic,
-   *  safeName: "anyNameYouWantOrNone"
-   * }, {
-   *  easyFuncMap: utility
-   * }]
-   * ```
-   */
-  utilities?: Array<{
-    easyFuncMap: Record<string, ((...args: any) => string)>
-    safeName?: string
-  }>
-  /**
-   * Import module name
-   * @default @iandx/easy-css
-   */
-  easyCssAlias?: string
-}
+import { type EasyStore, diffEasyStore, abandonEasyStore } from "./easyStoreHelper"
+import { getRelativePath, toHyphenatedCase } from "./utils"
+import { type EasyCssOption } from "./types"
+import { isStyleX, objectExpressionNodeToObject, replaceCss } from "./babelHelper"
 
 export default function(api: any, options: EasyCssOption = {}) {
   const {
@@ -317,9 +133,11 @@ export default function(api: any, options: EasyCssOption = {}) {
       },
       TaggedTemplateExpression(path: any, state: any) {
         if (!this.enter) return
-        if (!this.easyCss) return
         const node = path.node as t.TaggedTemplateExpression
-        if (!t.isIdentifier(node.tag) || node.tag.name !== "css") return
+        const isNodeStyleX = isStyleX(node.tag)
+        if (!isNodeStyleX && !this.easyCss) return
+        // ---- styled.xxx
+        if (!isNodeStyleX && (!t.isIdentifier(node.tag) || node.tag.name !== "css")) return
         let parentPath = path.parentPath
         let parentNode = parentPath.node
         let params: t.Identifier[] | undefined
@@ -328,10 +146,10 @@ export default function(api: any, options: EasyCssOption = {}) {
           parentPath = parentPath.parentPath
           parentNode = parentPath.node
         }
+
         const getEasyName = (name?: string) => {
-          name = name ? toHyphenatedCase(name) : undefined
+          name = name && !isNodeStyleX ? toHyphenatedCase(name) : undefined
           if (!params && node.quasi.quasis.length === 1) {
-            // --eg const a = css`color: red;`
             const cssString = node.quasi.quasis[0].value.raw
             const oldEasyStore = getOldEasyStore()
             const styleName = css.collect(cssString, name)
@@ -339,15 +157,11 @@ export default function(api: any, options: EasyCssOption = {}) {
             return { parsed: true, node: t.stringLiteral(styleName) }
           }
           if (!name) {
-            // --eg console.log(css`color: blue;`)
             return { parsed: false, node: t.identifier("undefined") }
           }
           if (!params || params.length === 0) {
-            // --eg const b = () => css`color: blue;`
-            // --or const c = css`color${ok}
             return { parsed: false, node: t.stringLiteral(name) }
           }
-          // --eg const d = css`color${ok}
           return {
             parsed: false,
             node: t.templateLiteral(
@@ -360,88 +174,24 @@ export default function(api: any, options: EasyCssOption = {}) {
             )
           }
         }
-        const pathNode = isDev ? t.stringLiteral(getRelativePath(state.filename)) : t.identifier("undefined")
-        if (t.isVariableDeclarator(parentNode)) {
-          if (!t.isIdentifier(parentNode.id)) return
-          const easy = getEasyName(parentNode.id.name)
-          path.replaceWith(
-            easy.parsed
-              ? easy.node
-              : t.callExpression(
-                t.memberExpression(
-                  t.identifier("css"),
-                  t.identifier("collect")
-                ),
-                [node.quasi, easy.node, pathNode]
-              )
-          )
-          path.skip()
+        if (isNodeStyleX) {
+          replaceCss(path, node.quasi, node.tag, parentNode, state.filename, isDev, getEasyName, true)
           return
         }
-        if (t.isClassProperty(parentNode)) {
-          if (!t.isIdentifier(parentNode.key)) return
-          const easy = getEasyName(parentNode.key.name)
-          path.replaceWith(
-            easy.parsed
-              ? easy.node
-              : t.callExpression(
-                t.memberExpression(
-                  t.identifier("css"),
-                  t.identifier("collect")
-                ),
-                [node.quasi, easy.node, pathNode]
-              )
-          )
-          path.skip()
-          return
-        }
-        if (t.isObjectProperty(parentNode)) {
-          if (t.isPrivateName(parentNode.key)) return
-          const easy = getEasyName(
-            t.isIdentifier(parentNode.key)
-              ? parentNode.key.name
-              : (parentNode.key as any).value
-          )
 
-          path.replaceWith(
-            easy.parsed
-              ? easy.node
-              : t.callExpression(
-                t.memberExpression(
-                  t.identifier("css"),
-                  t.identifier("collect")
-                ),
-                [
-                  node.quasi,
-                  parentNode.computed
-                    ? parentNode.key
-                    : easy.node,
-                  pathNode
-                ]
-              )
-          )
-          path.skip()
-          return
-        }
-        const easy = getEasyName()
-        path.replaceWith(
-          easy.parsed
-            ? easy.node
-            : t.callExpression(
-              t.memberExpression(
-                t.identifier("css"),
-                t.identifier("collect")
-              ), [node.quasi, easy.node, pathNode]
-            )
-        )
-        path.skip()
+        replaceCss(path, node.quasi, t.memberExpression(
+          t.identifier("css"),
+          t.identifier("collect")
+        ), parentNode, state.filename, isDev, getEasyName)
       },
       CallExpression(path: any, state: any) {
         if (!this.enter) return
         const node = path.node as t.CallExpression
-        if (this.easyCss) {
-          // style
-          if (!(t.isIdentifier(node.callee) && node.callee.name === "css")) return
+        const isNodeStyleX = isStyleX(node.callee)
+        if (
+          (this.easyCss && t.isIdentifier(node.callee) && node.callee.name === "css") ||
+          isNodeStyleX
+        ) {
           let parentPath = path.parentPath
           let parentNode = parentPath.node
           let params: t.Identifier[] | undefined
@@ -450,8 +200,9 @@ export default function(api: any, options: EasyCssOption = {}) {
             parentPath = parentPath.parentPath
             parentNode = parentPath.node
           }
+
           const getEasyName = (name?: string) => {
-            name = name ? toHyphenatedCase(name) : undefined
+            name = name && !isNodeStyleX ? toHyphenatedCase(name) : undefined
             let allConstant = t.isObjectExpression(node.arguments[0])
             if (allConstant) {
               path.scope.traverse(node.arguments[0], {
@@ -503,81 +254,14 @@ export default function(api: any, options: EasyCssOption = {}) {
               )
             }
           }
-          const pathNode = isDev ? t.stringLiteral(getRelativePath(state.filename)) : t.identifier("undefined")
-          if (t.isVariableDeclarator(parentNode)) {
-            if (!t.isIdentifier(parentNode.id)) return
-            const easy = getEasyName(parentNode.id.name)
-            path.replaceWith(
-              easy.parsed
-                ? easy.node
-                : t.callExpression(
-                  t.memberExpression(
-                    t.identifier("css"),
-                    t.identifier("collect")
-                  ),
-                  [node.arguments[0], easy.node, pathNode]
-                )
-            )
-            path.skip()
+          if (isNodeStyleX) {
+            replaceCss(path, node.arguments[0], node.callee, parentNode, state.filename, isDev, getEasyName, true)
             return
           }
-          if (t.isClassProperty(parentNode)) {
-            if (!t.isIdentifier(parentNode.key)) return
-            const easy = getEasyName(parentNode.key.name)
-            path.replaceWith(
-              easy.parsed
-                ? easy.node
-                : t.callExpression(
-                  t.memberExpression(
-                    t.identifier("css"),
-                    t.identifier("collect")
-                  ),
-                  [node.arguments[0], easy.node, pathNode]
-                )
-            )
-            path.skip()
-            return
-          }
-          if (t.isObjectProperty(parentNode)) {
-            if (t.isPrivateName(parentNode.key)) return
-            const easy = getEasyName(
-              t.isIdentifier(parentNode.key)
-                ? parentNode.key.name
-                : (parentNode.key as any).value
-            )
-
-            path.replaceWith(
-              easy.parsed
-                ? easy.node
-                : t.callExpression(
-                  t.memberExpression(
-                    t.identifier("css"),
-                    t.identifier("collect")
-                  ),
-                  [
-                    node.arguments[0],
-                    parentNode.computed
-                      ? parentNode.key
-                      : easy.node,
-                    pathNode
-                  ]
-                )
-            )
-            path.skip()
-            return
-          }
-          const easy = getEasyName()
-          path.replaceWith(
-            easy.parsed
-              ? easy.node
-              : t.callExpression(
-                t.memberExpression(
-                  t.identifier("css"),
-                  t.identifier("collect")
-                ), [node.arguments[0], easy.node, pathNode]
-              )
-          )
-          path.skip()
+          replaceCss(path, node.arguments[0], t.memberExpression(
+            t.identifier("css"),
+            t.identifier("collect")
+          ), parentNode, state.filename, isDev, getEasyName)
           return
         }
 
