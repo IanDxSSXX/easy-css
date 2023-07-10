@@ -235,26 +235,7 @@ css`
   cursor: pointer;
 }
 ```
-## 即使属性的顺序不同，它们仍将具有相同的名称。
-```js
-const myStyle = css`
-  cursor: pointer;
-  display: flex;
-` // ~> "myStyle"
-
-css`
-  display: flex;
-  cursor: pointer;
-` // ~> "myStyle"
-```
-生成的CSS:
-```css
-.my-style {
-  display: flex;
-  cursor: pointer;
-}
-```
-## Underline trimming
+## 下划线去除
 为避免变量声明冲突，你可以在前缀或后缀中添加下划线，并且 easy-css 将自动删除它们。
 
 ```js

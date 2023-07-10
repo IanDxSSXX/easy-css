@@ -1,11 +1,18 @@
 
 import { css, easyStore } from "@iandx/easy-css"
 import { marginTop } from "@iandx/easy-css-atomic"
-marginTop("20px")
+// marginTop("20px")
 // import { ok } from "./sub"
 // const tttt = css`
 //         color:${"red"};
 //       `
+console.log(css`
+  padding-left: 0px;
+  padding: 100px;
+`, css`
+padding: 100px;
+padding-left: 0px;
+`)
 console.log("ok")
 // console.log(css`
 // ok: true;
@@ -123,8 +130,8 @@ console.log("ok")
 // }
 // console.timeEnd("0")
 
-console.log(css`jj: red;`)
-console.log(css`jj: ${"blue"};`)
+// console.log(css`jj: red;`)
+// console.log(css`jj: ${"blue"};`)
 // const t = AA.margin("20xx")
 // const world = css`
 //       color: green;

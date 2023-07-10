@@ -233,25 +233,6 @@ Generated CSS:
   cursor: pointer;
 }
 ```
-## Even if the order of the properties is different, they'll still have the same names.
-```js
-const myStyle = css`
-  cursor: pointer;
-  display: flex;
-` // ~> "myStyle"
-
-css`
-  display: flex;
-  cursor: pointer;
-` // ~> "myStyle"
-```
-Generated CSS:
-```css
-.my-style {
-  display: flex;
-  cursor: pointer;
-}
-```
 ## Underline trimming
 To avoid variable declaration conflict, you can add underline as prefix or appendix, and easy-css will automatically trim them.
 ```js

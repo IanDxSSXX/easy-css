@@ -24,7 +24,7 @@ function getCssStringAndSubTemps(cssString: string) {
   cssString = minify(cssString)
   let subsTemp: Array<{ name: string, content: string }> = []
   if (!cssString.includes("{")) {
-    const cssArr = [...new Set(cssString.split(";"))].filter(Boolean).sort()
+    const cssArr = [...new Set(cssString.split(";"))].filter(Boolean)
     cssString = cssArr.join(";") + (cssArr.length !== 0 ? ";" : "")
   } else {
     const subParsed = parseSub(cssString)
