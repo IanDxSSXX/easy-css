@@ -34,3 +34,12 @@ export function generateUUIDFromString(inputString: string): string {
 export function minify(str: string) {
   return str.replace(/\n/g, "").replace(/\/\*(\n|.)+?\*\//g, "").replace(/\s*([:;,{}])\s*/g, "$1").trim()
 }
+
+export function toHyphenatedCase(str: string) {
+  return str
+    .replace(/([a-z])([A-Z])/g, "$1-$2")
+    .replace(/[^a-zA-Z0-9]/g, "-")
+    .replace(/-$/, "")
+    .replace(/--+/, "-")
+    .toLowerCase()
+}

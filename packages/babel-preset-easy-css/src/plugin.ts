@@ -7,6 +7,8 @@ import { type EasyCssOption } from "./types"
 import { isStyleX, objectExpressionNodeToObject, replaceCss } from "./babelHelper"
 
 export default function(api: any, options: EasyCssOption = {}) {
+  const id = Math.random().toString(32).slice(2, 8)
+
   const {
     utilities,
     easyCssAlias = "@iandx/easy-css",
@@ -62,6 +64,14 @@ export default function(api: any, options: EasyCssOption = {}) {
             nameHashStore: {},
             styleHashStore: {}
           }
+
+          const importNode = t.importDeclaration(
+            [
+              t.importSpecifier(t.identifier(`toHyphenatedCase_${id}`), t.identifier("toHyphenatedCase"))
+            ],
+            t.stringLiteral(easyCssAlias)
+          )
+          path.node.body.unshift(importNode)
         },
         exit(path: any, state: any) {
           if (!this.enter) return
@@ -74,7 +84,6 @@ export default function(api: any, options: EasyCssOption = {}) {
             Object.keys(currentEasyStore.styleHashStore).length === 0
           ) return
 
-          const id = Math.random().toString(32).slice(2, 8)
           const injectBodyNode = t.blockStatement([
             t.expressionStatement(
               t.callExpression(t.identifier(`preParseEasyStore_${id}`), [
@@ -170,7 +179,10 @@ export default function(api: any, options: EasyCssOption = {}) {
                 ...params.slice(0, -1).map(_ => t.templateElement({ raw: "-" })),
                 t.templateElement({ raw: name.endsWith("$") ? "$" : "" })
               ],
-              params
+              params.map(n => t.callExpression(
+                t.identifier(`toHyphenatedCase_${id}`),
+                [n]
+              ))
             )
           }
         }
@@ -238,10 +250,10 @@ export default function(api: any, options: EasyCssOption = {}) {
             }
             if (!params || params.length === 0) {
               // --eg const b = () => css`color: blue;`
-              // --or const c = css`color${ok}
+              // --or const c = css`color${ok}`
               return { parsed: false, node: t.stringLiteral(name) }
             }
-            // --eg const d = css`color${ok}
+            // --eg const d = ok => css`color${ok}`
             return {
               parsed: false,
               node: t.templateLiteral(
@@ -250,7 +262,10 @@ export default function(api: any, options: EasyCssOption = {}) {
                   ...params.slice(0, -1).map(_ => t.templateElement({ raw: "-" })),
                   t.templateElement({ raw: name.endsWith("$") ? "$" : "" })
                 ],
-                params
+                params.map(n => t.callExpression(
+                  t.identifier(`toHyphenatedCase_${id}`),
+                  [n]
+                ))
               )
             }
           }

@@ -1,6 +1,9 @@
 
 import { css, easyStore } from "@iandx/easy-css"
 import { marginTop } from "@iandx/easy-css-atomic"
+import * as tt from "./hh"
+
+console.log(tt)
 // marginTop("20px")
 // import { ok } from "./sub"
 // const tttt = css`
@@ -14,6 +17,10 @@ padding: 100px;
 padding-left: 0px;
 `)
 console.log("ok")
+
+const i = (tt) => css`fuck${tt}`
+
+console.log(marginTop("faf sfa"))
 // console.log(css`
 // ok: true;
 // `)
