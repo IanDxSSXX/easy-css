@@ -95,15 +95,12 @@ function judgeSubs(easyStylesWithSub: EasyStyleWithSub[]) {
 
 function handleMainStyle(cssId: string, cssString: string, name: string | undefined, contentSame: boolean, filePath?: string) {
   if (contentSame) return easyStore.nameHashStore[cssId]
-  if (name === undefined) name = easyStore.nameHashStore[cssId] ?? `easy-css-${rand.randStr()}`
-  else if (name.endsWith("$")) name = easyStore.nameHashStore[cssId] ?? `${name.slice(0, -1)}-${rand.randStr()}`
-  else if (easyStore.conflictNameStore[name] !== undefined) {
-    easyStore.conflictNameStore[name]++
-    name = `${name}${easyStore.conflictNameStore[name] - 1}`
+  if (name === undefined || !name.endsWith("$")) {
+    name = easyStore.nameHashStore[cssId] ?? `easy-css-${rand.randStr()}`
+    easyStore.nameHashStore[cssId] = name
   } else {
-    easyStore.conflictNameStore[name] = 1
+    name = name.slice(0, -1)
   }
-  easyStore.nameHashStore[cssId] = name
 
   injectStyle(`.${name}{${cssString}}`, name, filePath)
   return name

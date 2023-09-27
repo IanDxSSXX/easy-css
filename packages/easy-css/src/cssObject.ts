@@ -6,7 +6,7 @@ export function cssObjFunc(styles: StyleType) {
 }
 
 function camelToHyphen(str: string) {
-  return str.replace(/[A-Z]/g, (match) => "-" + match.toLowerCase())
+  return String(str).replace(/[A-Z]/g, (match) => "-" + match.toLowerCase())
 }
 
 function parseStyle(styles: StyleType) {

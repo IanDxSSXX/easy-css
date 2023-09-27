@@ -22,16 +22,14 @@ export default function(api: any, options: EasyCssOption = {}) {
 
   const renewCurrEasyStore = (currentEasyStore: EasyStore, oldEasyStore: EasyStore) => {
     const diffStore = diffEasyStore(oldEasyStore)
-    const { styleList, conflictNameStore, nameHashStore, styleHashStore } = diffStore
+    const { styleList, nameHashStore, styleHashStore } = diffStore
     currentEasyStore.styleList.push(...styleList)
-    currentEasyStore.conflictNameStore = { ...currentEasyStore.conflictNameStore, ...conflictNameStore }
     currentEasyStore.nameHashStore = { ...currentEasyStore.nameHashStore, ...nameHashStore }
     currentEasyStore.styleHashStore = { ...currentEasyStore.styleHashStore, ...styleHashStore }
   }
 
   const getOldEasyStore: () => EasyStore = () => ({
     styleList: [...easyStore.styleList],
-    conflictNameStore: { ...easyStore.conflictNameStore },
     nameHashStore: { ...easyStore.nameHashStore },
     styleHashStore: { ...easyStore.styleHashStore }
   })
@@ -60,7 +58,6 @@ export default function(api: any, options: EasyCssOption = {}) {
           }
           hmrStore[state.filename] = {
             styleList: [],
-            conflictNameStore: {},
             nameHashStore: {},
             styleHashStore: {}
           }
@@ -79,7 +76,6 @@ export default function(api: any, options: EasyCssOption = {}) {
           // and all the pre-parsed code will be executed first!
           const currentEasyStore = hmrStore[state.filename]
           if (currentEasyStore.styleList.length === 0 &&
-            Object.keys(currentEasyStore.conflictNameStore).length === 0 &&
             Object.keys(currentEasyStore.nameHashStore).length === 0 &&
             Object.keys(currentEasyStore.styleHashStore).length === 0
           ) return
@@ -90,12 +86,6 @@ export default function(api: any, options: EasyCssOption = {}) {
                 t.objectExpression([
                   t.objectProperty(t.identifier("styleList"), t.arrayExpression(
                     currentEasyStore.styleList.map((str: string) => t.stringLiteral(str))
-                  )),
-                  t.objectProperty(t.identifier("conflictNameStore"), t.objectExpression(
-                    Object.entries(currentEasyStore.conflictNameStore).map(([key, value]: any) => t.objectProperty(
-                      t.stringLiteral(key),
-                      t.numericLiteral(value)
-                    ))
                   )),
                   t.objectProperty(t.identifier("nameHashStore"), t.objectExpression(
                     Object.entries(currentEasyStore.nameHashStore).map(([key, value]: any) => t.objectProperty(

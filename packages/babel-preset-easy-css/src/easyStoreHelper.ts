@@ -4,11 +4,6 @@ export type EasyStore = typeof easyStore
 
 export function abandonEasyStore(oldEasyStore: EasyStore) {
   easyStore.styleList = easyStore.styleList.filter(s => !oldEasyStore.styleList.includes(s))
-  easyStore.conflictNameStore = Object.fromEntries(
-    Object.entries(easyStore.conflictNameStore).filter(([key]) => (
-      !Object.keys(oldEasyStore.conflictNameStore).includes(key))
-    )
-  )
   easyStore.nameHashStore = Object.fromEntries(
     Object.entries(easyStore.nameHashStore).filter(([key]) => (
       !Object.keys(oldEasyStore.nameHashStore).includes(key))
@@ -24,11 +19,6 @@ export function abandonEasyStore(oldEasyStore: EasyStore) {
 export function diffEasyStore(oldEasyStore: EasyStore): EasyStore {
   return {
     styleList: easyStore.styleList.filter(s => !oldEasyStore.styleList.includes(s)),
-    conflictNameStore: Object.fromEntries(
-      Object.entries(easyStore.conflictNameStore).filter(([key]) => (
-        oldEasyStore.conflictNameStore[key] === undefined
-      ))
-    ),
     nameHashStore: Object.fromEntries(
       Object.entries(easyStore.nameHashStore).filter(([key]) => (
         oldEasyStore.nameHashStore[key] === undefined

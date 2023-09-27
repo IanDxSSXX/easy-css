@@ -16,4 +16,3 @@ console.log(css`shit: right;`)
 const tttt = css`
   color:blue;
 `
-console.log(easyStore.conflictNameStore.tttt)

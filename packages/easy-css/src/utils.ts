@@ -2,7 +2,7 @@ export const rand = {
   a: 1103515245,
   c: 12345,
   m: Math.pow(2, 32),
-  seed: 123456789,
+  seed: Math.floor(Math.random() * 1000000),
   rand() {
     rand.seed = (rand.a * rand.seed + rand.c) % rand.m
     return rand.seed / rand.m
@@ -32,11 +32,11 @@ export function generateUUIDFromString(inputString: string): string {
 }
 
 export function minify(str: string) {
-  return str.replace(/\n/g, "").replace(/\/\*(\n|.)+?\*\//g, "").replace(/\s*([:;,{}])\s*/g, "$1").trim()
+  return String(str).replace(/\n/g, "").replace(/\/\*(\n|.)+?\*\//g, "").replace(/\s*([:;,{}])\s*/g, "$1").trim()
 }
 
 export function toHyphenatedCase(str: string) {
-  return str
+  return String(str)
     .replace(/([a-z])([A-Z])/g, "$1-$2")
     .replace(/[^a-zA-Z0-9]/g, "-")
     .replace(/-$/, "")

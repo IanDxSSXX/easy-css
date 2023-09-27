@@ -20,13 +20,13 @@ export function getRelativePath(targetFile: string) {
 }
 
 function trimUnderline(str: string) {
-  return str.replace(/^_+|_+$/g, "")
+  return String(str).replace(/^_+|_+$/g, "")
 }
 
 export function toHyphenatedCase(str: string) {
-  return trimUnderline(str)
+  return trimUnderline(String(str))
     .replace(/([a-z])([A-Z])/g, "$1-$2")
-    .replace(/[^a-zA-Z0-9]/g, "-")
+    .replace(/[^a-zA-Z0-9$]/g, "-")
     .replace(/-$/, "")
     .replace(/--+/, "-")
     .toLowerCase()

@@ -4,7 +4,6 @@ let head: any
 
 export const easyStore: EasyStore = {
   styleList: [],
-  conflictNameStore: {},
   nameHashStore: {},
   styleHashStore: {}
 }
@@ -12,13 +11,11 @@ export const easyStore: EasyStore = {
 export function clearStore() {
   easyStore.nameHashStore = {}
   easyStore.styleHashStore = {}
-  easyStore.conflictNameStore = {}
   easyStore.styleList = []
 }
 
 export function preParseEasyStore(newEasyStore: EasyStore, path?: string) {
   easyStore.styleList = [...easyStore.styleList, ...newEasyStore.styleList]
-  easyStore.conflictNameStore = { ...easyStore.conflictNameStore, ...newEasyStore.conflictNameStore }
   easyStore.nameHashStore = { ...easyStore.nameHashStore, ...newEasyStore.nameHashStore }
   easyStore.styleHashStore = { ...easyStore.styleHashStore, ...newEasyStore.styleHashStore }
   if (typeof document !== "undefined" && easyStore.styleList.length > 0) {

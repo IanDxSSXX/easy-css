@@ -1,28 +1,21 @@
 
 import { css, easyStore } from "@iandx/easy-css"
 import { marginTop } from "@iandx/easy-css-atomic"
-import * as tt from "./hh"
+import { prefix } from "inline-style-prefixer"
+// import * as tt from "./hh"
 
-console.log(tt)
-// marginTop("20px")
-// import { ok } from "./sub"
-// const tttt = css`
-//         color:${"red"};
-//       `
-console.log(css`
-  padding-left: 0px;
-  padding: 100px;
-`, css`
-padding: 100px;
-padding-left: 0px;
-`)
-console.log("ok")
+// console.log(tt)
+const a$ = css`jjjj: 100;`
 
-const i = (tt) => css`fuck${tt}`
+const style = {
+  transition: "200ms all linear",
+  boxSizing: "border-box",
+  display: "flex",
+  color: "blue"
+}
 
-console.log(marginTop("faf sfa"))
-// console.log(css`
-// ok: true;
+const output = prefix(style)
+console.log(output)
 // `)
 // console.log(css`
 // ok: true;

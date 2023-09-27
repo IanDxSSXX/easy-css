@@ -11,7 +11,6 @@ export interface EasyStyleWithSub {
 
 export interface EasyStore {
   styleList: string[]
-  conflictNameStore: Record<string, number>
   nameHashStore: Record<string, string>
   styleHashStore: Record<string, boolean>
 }
